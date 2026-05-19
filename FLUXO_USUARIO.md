@@ -1,26 +1,6 @@
-# Prompt 
-Atue como um Arquiteto de Software Sênior especialista em Sistemas Baseados em IA e UX Conversacional.
-
-Contexto do Projeto:
-Estou desenvolvendo o "ajuda.tech", um sistema web (Python + Django + OpenRouter API) onde usuários totalmente leigos em informática recebem ajuda de uma IA para escolher o computador ideal. O foco absoluto é a simplicidade: o usuário não sabe o que é RAM, SSD ou Processador; ele sabe apenas o uso que dará ao computador e quanto pode gastar.
-
-Tarefa:
-Gere o código de um fluxograma utilizando a sintaxe Mermaid.js (graph TD) focado na jornada deste usuário leigo.
-
-O fluxo deve conter de forma explícita:
-1. Entrada do usuário na Landing Page com uma chamada acolhedora e simples.
-2. Início do chat sem a obrigatoriedade de login (para diminuir a fricção).
-3. Coleta de requisitos por meio de metáforas ou perguntas cotidianas feitas pela IA (Ex: Quais programas vai usar? Precisa levar o computador para a faculdade/trabalho ou vai ficar fixo na mesa?).
-4. Validação de Orçamento (O usuário informa o limite de preço).
-5. Processamento no Django (Envio do histórico de linguagem natural para o OpenRouter).
-6. Exibição da Recomendação "Traduzida": Mostrar o computador recomendado focando nos benefícios práticos (Ex: "Este liga em 5 segundos", "Roda seus jogos sem travar") e escondendo os termos técnicos pesados sob um botão de "Ver especificações avançadas".
-7. Fluxo de tratamento quando o orçamento é incompatível com o uso desejado, mostrando como a IA sugere alternativas ou ajusta as expectativas de forma gentil.
-
-Gere apenas o bloco de código Mermaid.js, sem explicações adicionais.
-
-
-
 # Fluxograma da Jornada do Usuário - ajuda.tech
+
+Fluxograma da jornada de um usuário leigo em informática utilizando o sistema ajuda.tech para receber uma recomendação de computador com linguagem acessível.
 
 ```mermaid
 graph TD
