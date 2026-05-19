@@ -27,7 +27,7 @@ Muitas pessoas têm dificuldade em escolher um computador porque não entendem a
 | Backend        | Python 3.12+                 |
 | Framework      | Django 5.x                   |
 | Banco de dados | SQLite                       |
-| IA             | API de LLM (OpenAI / Gemini) |
+| IA             | API de LLM (Open Router) |
 | Frontend       | Django Templates + HTML/CSS  |
 
 ---
@@ -38,7 +38,7 @@ Muitas pessoas têm dificuldade em escolher um computador porque não entendem a
 
 - Python 3.12 ou superior
 - pip
-- Chave de API do provedor de LLM (OpenAI ou Gemini)
+- Chave de API do provedor de LLM (Open Router)
 
 ### Passos
 
@@ -77,7 +77,7 @@ SECRET_KEY=sua_chave_secreta_django
 DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
 LLM_API_KEY=sua_chave_de_api_da_ia
-LLM_PROVIDER=openai  # ou gemini
+LLM_PROVIDER=openrouter  # ou openrouter
 ```
 
 ---
