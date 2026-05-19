@@ -31,7 +31,7 @@ Forneça exclusivamente o código delimitado por @startuml e @enduml.
 
 
 
-Gere arquivo .md e me explique como visualizar o diagrama,considere que tenho a extenção PlantUML instalada
+Gere arquivo .md e me explique como visualizar o diagrama, considere que tenho a extensão PlantUML instalada
 
 
 
