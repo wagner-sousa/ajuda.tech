@@ -29,7 +29,6 @@ graph TD
     classDef ia fill:#2196F3,stroke:#1565C0,stroke-width:3px,color:white
     classDef sistema fill:#9E9E9E,stroke:#616161,stroke-width:3px,color:white
     classDef decisao fill:#FF9800,stroke:#EF6C00,stroke-width:3px,color:white
-    classDef alternativa fill:#F44336,stroke:#C62828,stroke-width:3px,color:white
     classDef beneficio fill:#8BC34A,stroke:#558B2F,stroke-width:2px,color:white
 
     %% Entrada
