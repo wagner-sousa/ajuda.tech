@@ -74,39 +74,7 @@ Este documento analisa a viabilidade técnica, de negócio e operacional do Ajud
 
 ---
 
-## 4. Viabilidade Operacional
-
-### 4.1 Equipe Necessária para o MVP
-
-| Papel                          | Dedicação                  |
-| ------------------------------ | -------------------------- |
-| Desenvolvedor Backend (Django) | 1 pessoa                   |
-| Engenheiro de Prompts          | Pode ser o mesmo dev       |
-| Designer de UI (básico)        | Parcial ou uso de template |
-
-### 4.2 Estimativa de Esforço (MVP)
-
-| Entrega                              | Estimativa          |
-| ------------------------------------ | ------------------- |
-| Setup do projeto Django + modelos    | 1–2 dias            |
-| Integração com API de LLM            | 1–2 dias            |
-| Interface de chat (templates + AJAX) | 2–3 dias            |
-| Engenharia de prompts e testes       | 2–3 dias            |
-| Ajustes, testes e documentação       | 1–2 dias            |
-| **Total estimado**                   | **7–12 dias úteis** |
-
-### 4.3 Custo Estimado (MVP)
-
-| Item                                  | Custo Estimado       |
-| ------------------------------------- | -------------------- |
-| Infraestrutura (dev local)            | R$ 0                 |
-| API de LLM (testes e desenvolvimento) | ~R$ 10–50 (uso leve) |
-| Domínio + hospedagem (se publicar)    | ~R$ 30–80/mês        |
-| **Total MVP**                         | **< R$ 100**         |
-
----
-
-## 5. Conclusão
+## 4. Conclusão
 
 | Critério                | Avaliação      |
 | ----------------------- | -------------- |
