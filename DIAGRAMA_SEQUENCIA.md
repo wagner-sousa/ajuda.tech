@@ -1,4 +1,4 @@
-# Pronpt
+# Prompt
 Atue como um Engenheiro de Software Sênior e Projetista de Sistemas.
 
 Contexto do Projeto:
