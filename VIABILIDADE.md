@@ -22,7 +22,7 @@ Este documento analisa a viabilidade técnica, de negócio e operacional do Ajud
 | Linguagem      | Python 3.12                   | Maturidade, suporte a LLMs, ecossistema rico           |
 | Framework web  | Django 5.x                    | Inclui ORM, admin, autenticação e segurança por padrão |
 | Banco de dados | SQLite                        | Zero configuração, suficiente para MVP local           |
-| IA             | API OpenAI (GPT-4o) ou Gemini | APIs maduras, documentação extensa, pay-as-you-go      |
+| IA             | API Open Router | APIs maduras, documentação extensa, pay-as-you-go      |
 | Frontend       | Django Templates              | Sem necessidade de framework JS separado no MVP        |
 
 ### 2.2 Complexidade Técnica
