@@ -1,4 +1,4 @@
-# Prontp 
+# Prompt 
 Atue como um Arquiteto de Software Especialista na Stack Python/Django.
 
 Contexto do Projeto:
