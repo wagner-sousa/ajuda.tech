@@ -14,7 +14,7 @@ graph TD
     %% Entrada
     A[Landing Page<br/>Encontre seu computador ideal]:::usuario --> B
     B[Bem-vindo ao ajuda.tech!<br/>Como posso te ajudar hoje?]:::ia --> C
-    C[Iniciar Conversa<br/>Sem login obrigatorio]:::sistema --> D
+    C[Iniciar Conversa<br/>Sem login obrigatório]:::sistema --> D
 
     %% Coleta de Requisitos com Metáforas
     D[Oi! Me conta:<br/>O que voce vai fazer no computador?]:::ia --> E
