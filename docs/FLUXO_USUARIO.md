@@ -1,6 +1,10 @@
-# Fluxograma da Jornada do Usuário - ajuda.tech
+# Fluxograma da Jornada do Usuário - ajuda.tech (MVP Simplificado)
 
 Fluxograma da jornada de um usuário leigo em informática utilizando o sistema ajuda.tech para receber uma recomendação de computador com linguagem acessível.
+
+**Simplificações do MVP:**
+- Sem login obrigatório
+- Sem banco de dados (histórico em memória)
 
 ```mermaid
 graph TD
@@ -11,10 +15,10 @@ graph TD
     classDef decisao fill:#FF9800,stroke:#EF6C00,stroke-width:3px,color:white
     classDef beneficio fill:#8BC34A,stroke:#558B2F,stroke-width:2px,color:white
 
-    %% Entrada
+    %% Entrada - Sem Login
     A[Landing Page<br/>Encontre seu computador ideal]:::usuario --> B
     B[Bem-vindo ao ajuda.tech!<br/>Como posso te ajudar hoje?]:::ia --> C
-    C[Iniciar Conversa<br/>Sem login obrigatório]:::sistema --> D
+    C[Chat Inicia Imediatamente<br/>Sem login obrigatório]:::sistema --> D
 
     %% Coleta de Requisitos com Metáforas
     D[Oi! Me conta:<br/>O que voce vai fazer no computador?]:::ia --> E
@@ -49,8 +53,8 @@ graph TD
 
     V --> W{Orcamento<br/>Compativel?}:::decisao
 
-    %% Processamento Django
-    W -->|Sim| X[Envio para Django<br/>Historico da conversa]:::sistema --> Y
+    %% Processamento Django - Sem Banco
+    W -->|Sim| X[Envio para Django<br/>Historico em memoria]:::sistema --> Y
     Y[Django - OpenRouter API<br/>Analise do perfil]:::sistema --> Z
     Z[IA processa e gera<br/>Recomendacao personalizada]:::ia --> AA
 
@@ -90,6 +94,19 @@ graph TD
 
     AX --> D
 ```
+
+## Alterações do MVP Simplificado
+
+### Removido
+- ~~Etapa de login/cadastro~~
+- ~~Verificação de conta existente~~
+- ~~Criação de conta~~
+- ~~Banco de dados de usuários~~
+
+### Simplificado
+- **Acesso direto ao chat**: Usuário inicia conversa imediatamente
+- **Histórico em memória**: Session/cookie mantém contexto
+- **Sem persistência**: Histórico perdido ao fechar o navegador
 
 ## Como Visualizar
 
