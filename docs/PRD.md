@@ -137,7 +137,7 @@ A IA deve identificar, ao longo da conversa:
 - Recomendação ao final da conversa
 - Histórico da sessão ativa
 - Backend com Django + SQLite
-- Integração com uma API de LLM (OpenAI ou Gemini)
+- Integração com uma API de LLM (Open Router)
 
 ### Fora do Escopo (Pós-MVP)
 
