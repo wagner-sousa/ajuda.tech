@@ -1,0 +1,50 @@
+// For format details, see https://aka.ms/devcontainer.json
+{
+	"name": "Ajuda Tech",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+
+	// Encaminha a porta do servidor Django
+	"forwardPorts": [8000],
+	"portsAttributes": {
+		"8000": {
+			"label": "Django Dev Server",
+			"onAutoForward": "notify"
+		}
+	},
+
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.python",
+				"ms-python.pylance",
+				"ms-python.debugpy",
+				"ms-python.black-formatter",
+				"ms-python.isort",
+				"batisteo.vscode-django",
+				"monosans.djlint",
+				"mikestead.dotenv",
+				"usernamehw.errorlens",
+				"eamodio.gitlens"
+			],
+			"settings": {
+				"python.defaultInterpreterPath": "/usr/local/bin/python",
+				"[python]": {
+					"editor.formatOnSave": true,
+					"editor.defaultFormatter": "ms-python.black-formatter",
+					"editor.codeActionsOnSave": {
+						"source.organizeImports": "explicit"
+					}
+				},
+				"files.associations": {
+					"**/templates/**/*.html": "django-html"
+				},
+				"python.testing.pytestEnabled": true,
+				"python.testing.pytestArgs": ["."]
+			}
+		}
+	},
+
+	"remoteUser": "vscode"
+}
