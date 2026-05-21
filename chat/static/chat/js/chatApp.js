@@ -14,7 +14,7 @@ import {
 } from './chatUi.js';
 import { initTheme } from './chatTheme.js';
 
-const USE_MOCK = true;
+const USE_MOCK = false;
 
 export function initChatApp(root = document) {
   initTheme(root.getElementById('chat-theme-toggle'), { document: root });
@@ -55,7 +55,7 @@ export function initChatApp(root = document) {
       const response = USE_MOCK
         ? await postChatMock(userText)
         : await postChat(userText, null);
-      state = appendMessage(state, { role: 'bot', text: response.message });
+      state = appendMessage(state, { role: 'bot', text: response.reply });
       refresh();
     } finally {
       setTypingVisible(typingEl, false);
