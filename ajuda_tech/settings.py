@@ -1,0 +1,91 @@
+from pathlib import Path
+from decouple import config, Csv
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+SECRET_KEY = config("SECRET_KEY", default="django-insecure-test-key-change-in-production")
+DEBUG = config("DEBUG", default=True, cast=bool)
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1", cast=Csv())
+
+INSTALLED_APPS = [
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.staticfiles",
+    "chat",
+    "core",
+]
+
+MIDDLEWARE = [
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+]
+
+ROOT_URLCONF = "ajuda_tech.urls"
+
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.messages.context_processors.messages",
+            ],
+        },
+    },
+]
+
+WSGI_APPLICATION = "ajuda_tech.wsgi.application"
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
+}
+
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
+SESSION_COOKIE_AGE = 86400  # 24 horas
+
+STATIC_URL = "/static/"
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# ─── OpenRouter / LLM ─────────────────────────────────────────────────────────
+LLM_API_KEY = config("LLM_API_KEY", default="")
+LLM_PROVIDER = config("LLM_PROVIDER", default="openai")
+LLM_MODEL = config("LLM_MODEL", default="deepseek/deepseek-v4-flash:free")
+LLM_TIMEOUT = config("LLM_TIMEOUT", default=30, cast=int)
+
+# Cabeçalhos opcionais de identificação no OpenRouter
+SITE_URL = config("SITE_URL", default="http://localhost:8000")
+SITE_NAME = config("SITE_NAME", default="Ajuda Tech")
+
+# ─── Logging ──────────────────────────────────────────────────────────────────
+LOG_LEVEL = config("LOG_LEVEL", default="INFO")
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": LOG_LEVEL,
+    },
+}
