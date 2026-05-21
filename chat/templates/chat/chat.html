@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ajuda Tech — Chat</title>
+</head>
+<body>
+<h1>Herbert — Assistente de Compra</h1>
+<div id="chat-window"></div>
+<form id="chat-form">
+  {% csrf_token %}
+  <input type="text" id="message-input" placeholder="Digite sua mensagem..." autocomplete="off">
+  <button type="submit">Enviar</button>
+</form>
+<hr>
+<button id="recommend-btn" style="display:none">Ver produtos recomendados</button>
+<div id="products-list"></div>
+
+<script>
+const form = document.getElementById('chat-form');
+const input = document.getElementById('message-input');
+const chatWindow = document.getElementById('chat-window');
+const recommendBtn = document.getElementById('recommend-btn');
+const productsList = document.getElementById('products-list');
+const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+let messageCount = 0;
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  appendMessage('Você', msg);
+  input.value = '';
+
+  const res = await fetch('/chat/send/', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+    body: JSON.stringify({message: msg}),
+  });
+  const data = await res.json();
+  if (res.ok) {
+    appendMessage('Herbert', data.reply);
+    messageCount++;
+    if (messageCount >= 3) recommendBtn.style.display = 'block';
+  } else {
+    appendMessage('Erro', data.error || 'Falha ao processar mensagem.');
+  }
+});
+
+recommendBtn.addEventListener('click', async () => {
+  const res = await fetch('/chat/recommend/', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+    body: JSON.stringify({}),
+  });
+  const data = await res.json();
+  if (res.ok) {
+    productsList.innerHTML = '<h2>Produtos recomendados</h2>';
+    data.products.forEach(p => {
+      productsList.innerHTML += `
+        <div>
+          <strong>${p.name}</strong> (${p.option})<br>
+          Preço: ${p.price} | Tipo: ${p.type}<br>
+          Specs: ${p.specs}<br>
+          <em>${p.justification}</em>
+        </div><hr>`;
+    });
+  }
+});
+
+function appendMessage(who, text) {
+  chatWindow.innerHTML += `<p><strong>${who}:</strong> ${text}</p>`;
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+</script>
+</body>
+</html>
