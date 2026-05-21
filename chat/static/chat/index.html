@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ajuda Tech — Chat</title>
+    <link rel="stylesheet" href="./css/chat.css" />
+  </head>
+  <body>
+    <main id="chat-app" data-mock="true">
+      <header class="chat-header">
+        <div class="chat-header-row">
+          <div>
+            <h1>Ajuda Tech</h1>
+            <p class="chat-subtitle">Encontre o computador ideal para você</p>
+          </div>
+          <button
+            id="chat-theme-toggle"
+            type="button"
+            class="chat-theme-toggle"
+            aria-label="Ativar modo escuro"
+            title="Ativar modo escuro"
+          ></button>
+        </div>
+      </header>
+
+      <div id="chat-messages" class="chat-messages" aria-live="polite"></div>
+
+      <p id="chat-typing" class="chat-typing" hidden>Digitando...</p>
+      <p id="chat-error" class="chat-error" hidden role="alert"></p>
+
+      <form class="chat-form">
+        <label class="visually-hidden" for="chat-input">Sua mensagem</label>
+        <textarea
+          id="chat-input"
+          rows="3"
+          placeholder="Descreva o que você precisa fazer no computador..."
+        ></textarea>
+        <div class="chat-actions">
+          <button id="chat-send" type="button">Enviar</button>
+          <button id="chat-new" type="button" class="chat-new">Nova conversa</button>
+        </div>
+      </form>
+    </main>
+    <script type="module" src="./js/chatApp.js"></script>
+  </body>
+</html>
