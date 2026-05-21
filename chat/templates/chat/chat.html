@@ -58,21 +58,48 @@ recommendBtn.addEventListener('click', async () => {
   });
   const data = await res.json();
   if (res.ok) {
-    productsList.innerHTML = '<h2>Produtos recomendados</h2>';
+    productsList.textContent = '';
+
+    const title = document.createElement('h2');
+    title.textContent = 'Produtos recomendados';
+    productsList.appendChild(title);
+
     data.products.forEach(p => {
-      productsList.innerHTML += `
-        <div>
-          <strong>${p.name}</strong> (${p.option})<br>
-          Preço: ${p.price} | Tipo: ${p.type}<br>
-          Specs: ${p.specs}<br>
-          <em>${p.justification}</em>
-        </div><hr>`;
+      const productDiv = document.createElement('div');
+
+      const nameStrong = document.createElement('strong');
+      nameStrong.textContent = p.name;
+      productDiv.appendChild(nameStrong);
+      productDiv.appendChild(document.createTextNode(` (${p.option})`));
+      productDiv.appendChild(document.createElement('br'));
+
+      productDiv.appendChild(
+        document.createTextNode(`Preço: ${p.price} | Tipo: ${p.type}`)
+      );
+      productDiv.appendChild(document.createElement('br'));
+
+      productDiv.appendChild(
+        document.createTextNode(`Specs: ${p.specs}`)
+      );
+      productDiv.appendChild(document.createElement('br'));
+
+      const justification = document.createElement('em');
+      justification.textContent = p.justification;
+      productDiv.appendChild(justification);
+
+      productsList.appendChild(productDiv);
+      productsList.appendChild(document.createElement('hr'));
     });
   }
 });
 
 function appendMessage(who, text) {
-  chatWindow.innerHTML += `<p><strong>${who}:</strong> ${text}</p>`;
+  const paragraph = document.createElement('p');
+  const label = document.createElement('strong');
+  label.textContent = `${who}:`;
+  paragraph.appendChild(label);
+  paragraph.appendChild(document.createTextNode(` ${text}`));
+  chatWindow.appendChild(paragraph);
   chatWindow.scrollTop = chatWindow.scrollHeight;
 }
 </script>
