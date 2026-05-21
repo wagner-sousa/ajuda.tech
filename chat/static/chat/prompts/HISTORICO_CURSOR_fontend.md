@@ -3,7 +3,7 @@
 | Campo | Valor |
 |-------|--------|
 | **Projeto** | ajuda.tech (Ajuda Tech) |
-| **Branch** | `fontend` |
+| **Branch** | `frontend` |
 | **Commit (curto)** | `badc592` |
 | **Data** | Maio de 2026 |
 | **Escopo** | Front-end do chat (MVP), sem Django nesta etapa |
