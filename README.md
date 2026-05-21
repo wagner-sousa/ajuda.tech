@@ -26,7 +26,6 @@ Muitas pessoas têm dificuldade em escolher um computador porque não entendem a
 | -------------- | ---------------------------- |
 | Backend        | Python 3.12+                 |
 | Framework      | Django 5.x                   |
-| Banco de dados | SQLite                       |
 | IA             | API de LLM (Open Router) |
 | Frontend       | Django Templates + HTML/CSS  |
 
@@ -67,6 +66,16 @@ python manage.py runserver
 ```
 
 Acesse em: `http://localhost:8000`
+
+### Front-end do chat (preview local, sem Django)
+
+```bash
+npm install
+npm test
+npx serve chat/static/chat
+```
+
+Abra a URL exibida (ex.: `http://localhost:3000`) para ver a página de chat com API mockada.
 
 ---
 
