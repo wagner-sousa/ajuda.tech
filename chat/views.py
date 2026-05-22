@@ -11,6 +11,8 @@ import logging
 
 from django.http import JsonResponse
 from django.views import View
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 
 from chat.exceptions import (
@@ -37,6 +39,7 @@ class ChatView(TemplateView):
         return super().get(request, *args, **kwargs)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class SendMessageView(View):
     """
     POST /chat/send/
@@ -101,6 +104,7 @@ class SendMessageView(View):
         return conversation
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class RecommendView(View):
     """
     POST /chat/recommend/
