@@ -1,3 +1,5 @@
+import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 import {
   validateMessage,
   createInitialState,
@@ -5,12 +7,24 @@ import {
   resetConversation,
 } from './chatState.js';
 import { postChat, postChatMock } from './chatApi.js';
+
+marked.use({ gfm: true, breaks: true });
+
+function parseMarkdown(text) {
+  // Garante espaço ao redor de marcadores bold/italic quando adjacentes a chars de palavra,
+  // evitando que marked junte palavras como "texto**negrito**outra" → "textonegritooutra".
+  const normalized = text
+    .replace(/(\w)(\*{1,3}[^*])/g, '$1 $2')
+    .replace(/([^*]\*{1,3})(\w)/g, '$1 $2');
+  return DOMPurify.sanitize(marked.parse(normalized));
+}
 import {
   renderMessages,
   showError,
   clearError,
   setTypingVisible,
   setSendDisabled,
+  setInputDisabled,
 } from './chatUi.js';
 import { initTheme } from './chatTheme.js';
 
@@ -29,7 +43,7 @@ export function initChatApp(root = document) {
   let state = createInitialState();
 
   function refresh() {
-    renderMessages(messagesEl, state.messages);
+    renderMessages(messagesEl, state.messages, parseMarkdown);
   }
 
   async function handleSend() {
@@ -50,6 +64,7 @@ export function initChatApp(root = document) {
 
     setTypingVisible(typingEl, true);
     setSendDisabled(sendBtn, true);
+    setInputDisabled(inputEl, true);
 
     try {
       const response = USE_MOCK
@@ -57,9 +72,12 @@ export function initChatApp(root = document) {
         : await postChat(userText, null);
       state = appendMessage(state, { role: 'bot', text: response.reply });
       refresh();
+    } catch (err) {
+      showError(errorEl, err.message || 'Não foi possível obter resposta. Tente novamente.');
     } finally {
       setTypingVisible(typingEl, false);
       setSendDisabled(sendBtn, false);
+      setInputDisabled(inputEl, false);
       inputEl.focus();
     }
   }

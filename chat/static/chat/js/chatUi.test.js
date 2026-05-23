@@ -5,6 +5,7 @@ import {
   clearError,
   setTypingVisible,
   setSendDisabled,
+  setInputDisabled,
 } from './chatUi.js';
 
 describe('chatUi', () => {
@@ -12,6 +13,7 @@ describe('chatUi', () => {
   let errorEl;
   let typingEl;
   let sendBtn;
+  let inputEl;
 
   beforeEach(() => {
     document.body.innerHTML = `
@@ -19,11 +21,13 @@ describe('chatUi', () => {
       <p id="chat-error" hidden></p>
       <p id="chat-typing" hidden>Digitando...</p>
       <button id="chat-send" type="button">Enviar</button>
+      <input id="chat-input" type="text" />
     `;
     container = document.getElementById('chat-messages');
     errorEl = document.getElementById('chat-error');
     typingEl = document.getElementById('chat-typing');
     sendBtn = document.getElementById('chat-send');
+    inputEl = document.getElementById('chat-input');
   });
 
   it('renderMessages creates N elements with user/bot classes', () => {
@@ -37,6 +41,19 @@ describe('chatUi', () => {
     expect(items[1].classList.contains('chat-message--user')).toBe(true);
     expect(items[0].textContent).toBe('Olá');
     expect(items[1].textContent).toBe('Oi');
+  });
+
+  it('bot messages use parseMarkdown; user messages use textContent', () => {
+    const parseMarkdown = (text) => `<p>${text}</p>`;
+    renderMessages(container, [
+      { role: 'bot', text: 'Resposta' },
+      { role: 'user', text: '<b>usuário</b>' },
+    ], parseMarkdown);
+    const items = container.querySelectorAll('.chat-message');
+    // Bot: innerHTML definido pelo parseMarkdown
+    expect(items[0].innerHTML).toBe('<p>Resposta</p>');
+    // Usuário: textContent escapado (sem HTML)
+    expect(items[1].innerHTML).toBe('&lt;b&gt;usuário&lt;/b&gt;');
   });
 
   it('showError displays text and clears with clearError', () => {
@@ -60,5 +77,12 @@ describe('chatUi', () => {
     expect(sendBtn.disabled).toBe(true);
     setSendDisabled(sendBtn, false);
     expect(sendBtn.disabled).toBe(false);
+  });
+
+  it('setInputDisabled toggles input disabled state', () => {
+    setInputDisabled(inputEl, true);
+    expect(inputEl.disabled).toBe(true);
+    setInputDisabled(inputEl, false);
+    expect(inputEl.disabled).toBe(false);
   });
 });

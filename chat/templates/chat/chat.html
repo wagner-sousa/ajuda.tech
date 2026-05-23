@@ -1,107 +1,57 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="pt-br">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ajuda Tech — Chat</title>
-</head>
-<body>
-<h1>Herbert — Assistente de Compra</h1>
-<div id="chat-window"></div>
-<form id="chat-form">
-  {% csrf_token %}
-  <input type="text" id="message-input" placeholder="Digite sua mensagem..." autocomplete="off">
-  <button type="submit">Enviar</button>
-</form>
-<hr>
-<button id="recommend-btn" style="display:none">Ver produtos recomendados</button>
-<div id="products-list"></div>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ajuda Tech — Chat</title>
+    <link rel="stylesheet" href="{% static 'chat/css/chat.css' %}" />
+    <script type="importmap">
+      {
+        "imports": {
+          "marked": "https://esm.sh/marked@15",
+          "dompurify": "https://esm.sh/dompurify@3"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <main id="chat-app">
+      <header class="chat-header">
+        <div class="chat-header-row">
+          <div>
+            <h1>Ajuda Tech</h1>
+            <p class="chat-subtitle">Encontre o computador ideal para você</p>
+          </div>
+          <button
+            id="chat-theme-toggle"
+            type="button"
+            class="chat-theme-toggle"
+            aria-label="Ativar modo escuro"
+            title="Ativar modo escuro"
+          ></button>
+        </div>
+      </header>
 
-<script>
-const form = document.getElementById('chat-form');
-const input = document.getElementById('message-input');
-const chatWindow = document.getElementById('chat-window');
-const recommendBtn = document.getElementById('recommend-btn');
-const productsList = document.getElementById('products-list');
-const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+      <div id="chat-messages" class="chat-messages" aria-live="polite"></div>
 
-let messageCount = 0;
+      <p id="chat-typing" class="chat-typing" hidden>Digitando...</p>
+      <p id="chat-error" class="chat-error" hidden role="alert"></p>
 
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const msg = input.value.trim();
-  if (!msg) return;
-
-  appendMessage('Você', msg);
-  input.value = '';
-
-  const res = await fetch('/chat/send/', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
-    body: JSON.stringify({message: msg}),
-  });
-  const data = await res.json();
-  if (res.ok) {
-    appendMessage('Herbert', data.reply);
-    messageCount++;
-    if (messageCount >= 3) recommendBtn.style.display = 'block';
-  } else {
-    appendMessage('Erro', data.error || 'Falha ao processar mensagem.');
-  }
-});
-
-recommendBtn.addEventListener('click', async () => {
-  const res = await fetch('/chat/recommend/', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
-    body: JSON.stringify({}),
-  });
-  const data = await res.json();
-  if (res.ok) {
-    productsList.textContent = '';
-
-    const title = document.createElement('h2');
-    title.textContent = 'Produtos recomendados';
-    productsList.appendChild(title);
-
-    data.products.forEach(p => {
-      const productDiv = document.createElement('div');
-
-      const nameStrong = document.createElement('strong');
-      nameStrong.textContent = p.name;
-      productDiv.appendChild(nameStrong);
-      productDiv.appendChild(document.createTextNode(` (${p.option})`));
-      productDiv.appendChild(document.createElement('br'));
-
-      productDiv.appendChild(
-        document.createTextNode(`Preço: ${p.price} | Tipo: ${p.type}`)
-      );
-      productDiv.appendChild(document.createElement('br'));
-
-      productDiv.appendChild(
-        document.createTextNode(`Specs: ${p.specs}`)
-      );
-      productDiv.appendChild(document.createElement('br'));
-
-      const justification = document.createElement('em');
-      justification.textContent = p.justification;
-      productDiv.appendChild(justification);
-
-      productsList.appendChild(productDiv);
-      productsList.appendChild(document.createElement('hr'));
-    });
-  }
-});
-
-function appendMessage(who, text) {
-  const paragraph = document.createElement('p');
-  const label = document.createElement('strong');
-  label.textContent = `${who}:`;
-  paragraph.appendChild(label);
-  paragraph.appendChild(document.createTextNode(` ${text}`));
-  chatWindow.appendChild(paragraph);
-  chatWindow.scrollTop = chatWindow.scrollHeight;
-}
-</script>
-</body>
+      <form class="chat-form">
+        {% csrf_token %}
+        <label class="visually-hidden" for="chat-input">Sua mensagem</label>
+        <textarea
+          id="chat-input"
+          rows="3"
+          placeholder="Descreva o que você precisa fazer no computador..."
+        ></textarea>
+        <div class="chat-actions">
+          <button id="chat-send" type="button">Enviar</button>
+          <button id="chat-new" type="button" class="chat-new">Nova conversa</button>
+        </div>
+      </form>
+    </main>
+    <script type="module" src="{% static 'chat/js/chatApp.js' %}"></script>
+  </body>
 </html>

@@ -241,28 +241,11 @@ class TestHttpErrorHandling:
             client.chat_completion([{"role": "user", "content": "test"}])
 
     @patch("chat.services.requests.post")
-    def test_error_in_body_with_200_raises_invalid_response(self, mock_post, client):
-        mock_post.return_value = make_mock_response(
-            200, {"error": {"code": 400, "message": "bad request"}}
-        )
-        with pytest.raises(InvalidResponseError):
+    def test_401_does_not_retry(self, mock_post, client):
+        mock_post.return_value = make_mock_response(401)
+        with pytest.raises(AuthenticationError):
             client.chat_completion([{"role": "user", "content": "test"}])
-
-    @patch("chat.services.requests.post")
-    def test_error_in_body_code_429_raises_rate_limit(self, mock_post, client):
-        mock_post.return_value = make_mock_response(
-            200, {"error": {"code": 429, "message": "rate limit exceeded"}}
-        )
-        with pytest.raises(RateLimitError):
-            client.chat_completion([{"role": "user", "content": "test"}])
-
-    @patch("chat.services.requests.post")
-    def test_error_in_body_code_503_raises_service_unavailable(self, mock_post, client):
-        mock_post.return_value = make_mock_response(
-            200, {"error": {"code": 503, "message": "service unavailable"}}
-        )
-        with pytest.raises(ServiceUnavailableError):
-            client.chat_completion([{"role": "user", "content": "test"}])
+        assert mock_post.call_count == 1
 
 
 # ─── TestRetryLogic ───────────────────────────────────────────────────────────

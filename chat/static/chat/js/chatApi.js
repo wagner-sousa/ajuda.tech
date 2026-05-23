@@ -1,4 +1,4 @@
-export const CHAT_ENDPOINT = '/chat/send/';
+export const CHAT_ENDPOINT = '/send/';
 
 const MOCK_RESPONSE =
   'Obrigado! Em breve conectaremos ao assistente. Por enquanto, continue me contando o que você precisa.';
@@ -38,7 +38,14 @@ export async function postChat(message, sessionId, { fetchFn = fetch } = {}) {
   });
 
   if (!response.ok) {
-    throw new Error('Falha ao enviar mensagem');
+    let errorMsg = 'Falha ao enviar mensagem';
+    try {
+      const errorData = await response.json();
+      if (errorData.error) errorMsg = errorData.error;
+    } catch (_) {
+      // ignora erros de parse — usa mensagem genérica
+    }
+    throw new Error(errorMsg);
   }
 
   return response.json();

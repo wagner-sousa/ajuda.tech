@@ -39,6 +39,7 @@ _OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 _DEFAULT_MODEL = "deepseek/deepseek-v4-flash:free"
 _DEFAULT_TIMEOUT = 60
 _DEFAULT_MAX_RETRIES = 2
+_DEFAULT_MAX_RATE_LIMIT_RETRIES = 10
 _RETRYABLE_STATUS_CODES = frozenset({500, 502, 503, 504})
 
 
@@ -54,7 +55,7 @@ class OpenRouterClient:
         Número máximo de tentativas após a primeira falha.
     """
 
-    def __init__(self, api_key: str | None = None, max_retries: int = _DEFAULT_MAX_RETRIES):
+    def __init__(self, api_key: str | None = None, max_retries: int = _DEFAULT_MAX_RETRIES, max_rate_limit_retries: int = _DEFAULT_MAX_RATE_LIMIT_RETRIES):
         if api_key:
             self.api_key = api_key
         else:
@@ -69,6 +70,7 @@ class OpenRouterClient:
         self.model: str = getattr(settings, "LLM_MODEL", _DEFAULT_MODEL)
         self.timeout: int = getattr(settings, "LLM_TIMEOUT", _DEFAULT_TIMEOUT)
         self.max_retries: int = max_retries
+        self.max_rate_limit_retries: int = max_rate_limit_retries
 
     # ─── Public API ───────────────────────────────────────────────────────────
 
@@ -144,14 +146,26 @@ class OpenRouterClient:
     def _chat_completion(self, messages: list[dict]) -> str:
         """Executa a chamada HTTP com retry e retorna o conteúdo da resposta."""
         attempt = 0
+        rate_limit_attempt = 0
         last_exc: Exception | None = None
 
         while attempt <= self.max_retries:
             try:
+                is_extraction = any(
+                    PRODUCT_EXTRACTION_PROMPT[:50] in m.get("content", "")
+                    for m in messages
+                )
+                max_tokens = 1500 if is_extraction else 800
                 response = requests.post(
                     _OPENROUTER_URL,
                     headers=self._build_headers(),
-                    data=json.dumps({"model": self.model, "messages": messages}),
+                    data=json.dumps({
+                        "model": self.model,
+                        "messages": messages,
+                        "max_tokens": max_tokens,
+                        "temperature": 0.7,
+                        "include_reasoning": False,
+                    }),
                     timeout=self.timeout,
                 )
                 return self._handle_response(response)
@@ -169,8 +183,24 @@ class OpenRouterClient:
                     time.sleep(wait)
                 attempt += 1
 
-            except (AuthenticationError, RateLimitError, InvalidResponseError):
+            except (AuthenticationError, InvalidResponseError):
                 raise  # sem retry para erros permanentes
+
+            except RateLimitError as exc:
+                rate_limit_attempt += 1
+                last_exc = exc
+                if rate_limit_attempt <= self.max_rate_limit_retries:
+                    wait = exc.retry_after
+                    logger.warning(
+                        "Rate limit atingido (429) — tentativa %d/%d. Aguardando %ds.",
+                        rate_limit_attempt,
+                        self.max_rate_limit_retries,
+                        wait,
+                    )
+                    time.sleep(wait)
+                    # Não incrementa `attempt`: 429 tem contador próprio
+                else:
+                    raise
 
             except requests.exceptions.Timeout as exc:
                 last_exc = ServiceUnavailableError(f"Timeout após {self.timeout}s: {exc}")
@@ -209,13 +239,27 @@ class OpenRouterClient:
 
         if status == 401:
             raise AuthenticationError("Chave de API inválida ou sem permissão (HTTP 401).")
+        if status == 402:
+            try:
+                detail = response.json().get("error", {}).get("message", "")
+            except ValueError:
+                detail = response.text[:200]
+            raise InvalidResponseError(
+                f"Modelo indisponível ou sem créditos (HTTP 402): {detail}"
+            )
         if status == 429:
-            raise RateLimitError("Limite de requisições excedido (HTTP 429).")
+            retry_after = int(response.headers.get("Retry-After", 10))
+            raise RateLimitError("Limite de requisições excedido (HTTP 429).", retry_after=retry_after)
         if status in _RETRYABLE_STATUS_CODES:
             raise ServiceUnavailableError(f"OpenRouter indisponível (HTTP {status}).")
         if status >= 400:
+            try:
+                detail = response.json().get("error", {}).get("message", "")
+            except ValueError:
+                detail = response.text[:200]
+            logger.error("Resposta inesperada da API (HTTP %d): %s", status, detail)
             raise InvalidResponseError(
-                f"Resposta inesperada da API (HTTP {status})."
+                f"Resposta inesperada da API (HTTP {status}): {detail}"
             )
 
         try:
@@ -223,23 +267,26 @@ class OpenRouterClient:
         except ValueError as exc:
             raise InvalidResponseError(f"Resposta não é JSON válido: {exc}") from exc
 
-        # O OpenRouter pode retornar erros no corpo mesmo com HTTP 200
-        if "error" in body:
-            error_obj = body["error"]
-            error_code = error_obj.get("code") or error_obj.get("status")
-            error_msg = error_obj.get("message", "Erro desconhecido")
-            logger.warning("Erro retornado pela API no corpo: código=%s msg=%s", error_code, error_msg)
-            if error_code == 429:
-                raise RateLimitError(f"Limite de requisições (corpo da resposta): {error_msg}")
-            if error_code in _RETRYABLE_STATUS_CODES:
-                raise ServiceUnavailableError(f"Serviço indisponível (corpo da resposta): {error_msg}")
-            raise InvalidResponseError(f"Erro reportado pela API: {error_msg} (código: {error_code})")
-
         try:
             choices = body["choices"]
             if not choices:
                 raise InvalidResponseError("'choices' está vazio na resposta.")
-            return choices[0]["message"]["content"]
+            choice = choices[0]
+            content = choice["message"]["content"]
+            if content is None:
+                finish_reason = choice.get("finish_reason", "unknown")
+                if finish_reason == "length":
+                    raise InvalidResponseError(
+                        f"Modelo esgotou tokens antes de gerar resposta "
+                        f"(finish_reason={finish_reason}). Tente novamente."
+                    )
+                raise ServiceUnavailableError(
+                    f"Modelo retornou content=None (finish_reason={finish_reason})."
+                )
+            # Remove blocos de raciocínio interno (<think>...</think>) que
+            # alguns modelos (ex: DeepSeek) incluem no campo content.
+            content = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL).strip()
+            return content
         except (KeyError, IndexError, TypeError) as exc:
             raise InvalidResponseError(
                 f"Estrutura de resposta inesperada: {exc}. Corpo: {body}"
