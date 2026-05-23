@@ -1,11 +1,13 @@
-// For format details, see https://aka.ms/devcontainer.json
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/universal
 {
 	"name": "Ajuda Tech",
 	"build": {
 		"dockerfile": "Dockerfile"
 	},
+	"postCreateCommand": "pip install -r requirements.txt && npm install",
 
-	// Encaminha a porta do servidor Django
+	// Features to add to the dev container. More info: https://containers.dev/features.
 	"forwardPorts": [8000],
 	"portsAttributes": {
 		"8000": {
@@ -45,6 +47,6 @@
 			}
 		}
 	},
-
+	
 	"remoteUser": "vscode"
 }
