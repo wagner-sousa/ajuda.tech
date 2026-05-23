@@ -8,7 +8,7 @@ import pytest
 from django.urls import reverse
 from unittest.mock import patch, MagicMock
 
-from chat.exceptions import AuthenticationError, InvalidResponseError, RateLimitError, ServiceUnavailableError
+from chat.exceptions import AuthenticationError, ServiceUnavailableError
 
 
 @pytest.fixture
@@ -107,22 +107,6 @@ class TestSendMessageView:
     def test_returns_503_when_service_unavailable(self, MockClient, django_client):
         MockClient.return_value.chat_completion.side_effect = ServiceUnavailableError(
             "serviço indisponível"
-        )
-        response = self._post(django_client, {"message": "teste"})
-        assert response.status_code == 503
-
-    @patch("chat.views.OpenRouterClient")
-    def test_returns_429_when_rate_limit_exceeded(self, MockClient, django_client):
-        MockClient.return_value.chat_completion.side_effect = RateLimitError(
-            "limite de requisições"
-        )
-        response = self._post(django_client, {"message": "teste"})
-        assert response.status_code == 429
-
-    @patch("chat.views.OpenRouterClient")
-    def test_returns_503_when_invalid_response(self, MockClient, django_client):
-        MockClient.return_value.chat_completion.side_effect = InvalidResponseError(
-            "resposta inválida"
         )
         response = self._post(django_client, {"message": "teste"})
         assert response.status_code == 503

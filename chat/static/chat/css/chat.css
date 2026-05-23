@@ -189,3 +189,76 @@ body {
   white-space: nowrap;
   border: 0;
 }
+
+/* ── Markdown em mensagens do bot ─────────────────────────────────────────── */
+
+.chat-message--bot p {
+  margin: 0.25rem 0;
+}
+
+.chat-message--bot p:first-child {
+  margin-top: 0;
+}
+
+.chat-message--bot p:last-child {
+  margin-bottom: 0;
+}
+
+.chat-message--bot ul,
+.chat-message--bot ol {
+  margin: 0.25rem 0;
+  padding-left: 1.25rem;
+}
+
+.chat-message--bot li {
+  margin-bottom: 0.15rem;
+}
+
+.chat-message--bot strong {
+  font-weight: 600;
+}
+
+.chat-message--bot em {
+  font-style: italic;
+}
+
+.chat-message--bot code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.875em;
+  background: rgba(0, 0, 0, 0.07);
+  padding: 0.1em 0.3em;
+  border-radius: 0.25rem;
+}
+
+.chat-message--bot pre {
+  background: rgba(0, 0, 0, 0.07);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 0.25rem 0;
+}
+
+.chat-message--bot pre code {
+  background: none;
+  padding: 0;
+}
+
+.chat-message--bot blockquote {
+  margin: 0.25rem 0;
+  padding-left: 0.75rem;
+  border-left: 3px solid var(--color-bot-border);
+  color: var(--color-subtitle);
+}
+
+.chat-message--bot h1,
+.chat-message--bot h2,
+.chat-message--bot h3 {
+  margin: 0.5rem 0 0.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.chat-message--bot a {
+  color: #2563eb;
+  text-decoration: underline;
+}

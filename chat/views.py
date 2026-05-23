@@ -11,8 +11,6 @@ import logging
 
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 
 from chat.exceptions import (
@@ -33,13 +31,11 @@ class ChatView(TemplateView):
     template_name = "chat/chat.html"
 
     def get(self, request, *args, **kwargs):
-        # Cada acesso à página (F5) inicia uma nova sessão → nova conversa
+        # Reinicia a sessão a cada carregamento da página — nova conversa no F5
         request.session.flush()
-        request.session.create()
         return super().get(request, *args, **kwargs)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class SendMessageView(View):
     """
     POST /chat/send/
@@ -82,12 +78,12 @@ class SendMessageView(View):
                 {"error": "Serviço de IA temporariamente indisponível. Tente novamente."}, status=503
             )
         except RateLimitError as exc:
-            logger.warning("Rate limit atingido no OpenRouter: %s", exc)
+            logger.warning("Erro ao processar resposta: %s", exc)
             return JsonResponse(
-                {"error": "Muitas requisições. Aguarde alguns instantes e tente novamente."}, status=429
+                {"error": "Muitas requisições. Aguarde alguns segundos e tente novamente."}, status=429
             )
         except InvalidResponseError as exc:
-            logger.warning("Resposta inválida do serviço de IA: %s", exc)
+            logger.warning("Erro ao processar resposta: %s", exc)
             return JsonResponse({"error": "Não foi possível processar a resposta."}, status=503)
 
         # 5. Persiste resposta do assistente
@@ -104,7 +100,6 @@ class SendMessageView(View):
         return conversation
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class RecommendView(View):
     """
     POST /chat/recommend/
