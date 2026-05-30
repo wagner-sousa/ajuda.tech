@@ -38,7 +38,7 @@ Muitas pessoas têm dificuldade em escolher um computador porque não entendem a
 ### Pré-requisitos
 
 - Python 3.12 ou superior
-- pip
+- pip (recomendado usar python -m pip)
 - Chave de API do provedor de LLM (Open Router)
 
 ### Passos
@@ -51,19 +51,22 @@ cd ajudatech
 # 2. Crie e ative o ambiente virtual
 python -m venv venv
 source venv/bin/activate  # Linux/macOS
-venv\Scripts\activate     # Windows
+venv\Scripts\activate   # Windows
 
 # 3. Instale as dependências
-pip install -r requirements.txt
+# Recomendação: utilize o gerenciador de pacotes pip via python -m pip
+python -m pip install -r requirements.txt
 
 # 4. Configure as variáveis de ambiente
-cp .env.example .env
-# Edite o arquivo .env e adicione sua chave de API
+# Edite o arquivo .env (já incluso no repositório) e preencha conforme seu ambiente.
 
 # 5. Aplique as migrações
 python manage.py migrate
 
-# 6. Inicie o servidor de desenvolvimento
+# 6. Execute testes (opcional)
+pytest
+
+# 7. Inicie o servidor de desenvolvimento
 python manage.py runserver
 ```
 
@@ -90,6 +93,8 @@ ALLOWED_HOSTS=localhost,127.0.0.1
 LLM_API_KEY=sua_chave_de_api_da_ia
 LLM_PROVIDER=openrouter  # ou openrouter
 ```
+
+Observação: o projeto inclui um arquivo `.env` com valores de exemplo; não comite chaves reais. Para variáveis sensíveis em desenvolvimento, prefira usar um arquivo `.env.local` (listado no .gitignore) e rotacione chaves caso ocorram exposições.
 
 ---
 

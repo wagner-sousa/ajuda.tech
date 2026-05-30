@@ -94,7 +94,7 @@ SESSION_ENGINE=django.contrib.sessions.backends.signed_cookies
 
 ### `requirements.txt`
 ```
-Django>=4.2,<5.0
+Django>=5.0,<6.0
 djangorestframework>=3.14.0
 channels>=4.0.0          # Opcional - apenas se usar WebSocket
 openai>=1.0.0
