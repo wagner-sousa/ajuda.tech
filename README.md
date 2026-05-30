@@ -98,26 +98,120 @@ Observação: o projeto inclui um arquivo `.env` com valores de exemplo; não co
 
 ---
 
-## 📁 Estrutura do Projeto
+## 📁 Estrutura do Projeto — Diagrama do Ecossistema
 
-```
-ajudatech/
-├── core/                   # App principal do Django
-│   ├── models.py           # Modelos: Sessão, Mensagem, Recomendação
-│   ├── views.py            # Views do chat e resultado
-│   ├── urls.py
-│   └── services/
-│       └── ai_service.py   # Integração com a API de LLM
-├── templates/              # Templates HTML
-├── static/                 # CSS, JS, imagens
-├── ajudatech/               # Configurações do projeto Django
-│   ├── settings.py
-│   └── urls.py
-├── docs/                   # Documentação do projeto
-├── manage.py
-├── requirements.txt
-├── .env.example
-└── README.md
+O diagrama abaixo representa a arquitetura completa do Ajuda Tech, incluindo frontend, backend, banco de dados, integração com API externa, infraestrutura e documentação:
+
+```mermaid
+graph TB
+    subgraph "🌐 Frontend (Navegador)"
+        CHAT_HTML["chat.html<br/>(Django Template)"]
+        INDEX_HTML["index.html<br/>(Preview Standalone)"]
+        CSS["chat.css<br/>(Estilos + Temas)"]
+        JS_APP["chatApp.js<br/>(Orquestrador)"]
+        JS_API["chatApi.js<br/>(HTTP + CSRF)"]
+        JS_UI["chatUi.js<br/>(DOM)"]
+        JS_STATE["chatState.js<br/>(Estado)"]
+        JS_THEME["chatTheme.js<br/>(Dark/Light)"]
+        LIBS["marked + DOMPurify<br/>(Markdown Seguro)"]
+        TESTS_JS["Testes Vitest<br/>(7 arquivos .test.js)"]
+    end
+
+    subgraph "🐍 Backend Django"
+        subgraph "Config"
+            SETTINGS["settings.py<br/>(Apps, Middleware, DB, LLM)"]
+            ROOT_URLS["urls.py<br/>(Raiz → chat.urls)"]
+            WSGI["wsgi.py"]
+        end
+        subgraph "App: chat"
+            VIEWS["views.py<br/>ChatView | SendMessageView | RecommendView"]
+            URLS_CHAT["urls.py<br/>/ | /send/ | /recommend/"]
+            SERVICES["services.py<br/>OpenRouterClient"]
+            PROMPTS["prompts.py<br/>System Prompts (Herbert)"]
+            MODELS["models.py<br/>Conversation + Message"]
+            EXCEPTIONS["exceptions.py<br/>AuthError | RateLimitError | ServiceUnavailable"]
+            ADMIN["admin.py<br/>(Desabilitado)"]
+            TEMPLATES["templates/chat/chat.html"]
+            TESTS_PY["tests/<br/>test_models | test_views<br/>test_services | test_prompts | test_limits"]
+        end
+        subgraph "App: core"
+            CORE_VIEWS["views.py<br/>IndexView (TemplateView)"]
+            CORE_URLS["urls.py<br/>(Não roteado)"]
+            CORE_TEMPLATE["templates/core/index.html"]
+        end
+        DJANGO_MGMT["manage.py"]
+    end
+
+    subgraph "🗄️ Banco de Dados"
+        SQLITE[("db.sqlite3<br/>SQLite")]
+        SESSION_DB[("Sessões<br/>Database-backed")]
+    end
+
+    subgraph "☁️ API Externa"
+        OPENROUTER["OpenRouter API<br/>api.openrouter.ai/v1/chat/completions"]
+        LLM_MODEL["Modelo LLM<br/>Nemotron / DeepSeek"]
+    end
+
+    subgraph "⚙️ Infraestrutura"
+        GIT["Git + GitHub"]
+        CI_CD["GitHub Actions<br/>test (pytest) | frontend-test (vitest)"]
+        ENV[".env<br/>LLM_API_KEY, SECRET_KEY, DEBUG"]
+        REQS["requirements.txt<br/>Django, decouple, requests"]
+        PACKAGE["package.json<br/>vitest, dompurify, marked"]
+    end
+
+    subgraph "📚 Documentação"
+        README["README.md"]
+        DOCS["docs/<br/>PRD, User Stories, Diagramas"]
+        PROMPTS_DOC["prompts/<br/>Histórico de Prompts"]
+        PROMPTS_MINI["prompts-mini-projeto/<br/>Sessões Anteriores"]
+    end
+
+    %% Conexões Frontend → Backend
+    CHAT_HTML -->|"Renderiza"| JS_APP
+    JS_APP -->|"Importa"| JS_API
+    JS_APP -->|"Importa"| JS_UI
+    JS_APP -->|"Importa"| JS_STATE
+    JS_APP -->|"Importa"| JS_THEME
+    JS_APP -->|"Usa"| LIBS
+    CHAT_HTML -->|"Carrega"| CSS
+
+    JS_API -->|"POST /send/ (JSON + CSRF)"| VIEWS
+
+    %% Conexões Backend interno
+    ROOT_URLS -->|"include"| URLS_CHAT
+    VIEWS -->|"Lê/Escreve"| MODELS
+    VIEWS -->|"Chama"| SERVICES
+    SERVICES -->|"Lê"| PROMPTS
+    SERVICES -->|"Lança"| EXCEPTIONS
+    VIEWS -->|"Renderiza"| TEMPLATES
+    SETTINGS -->|"Configura"| VIEWS
+    SETTINGS -->|"Configura"| SERVICES
+    SETTINGS -->|"Configura"| MODELS
+
+    %% Core (não usado)
+    CORE_VIEWS -.->|"⚠️ Não roteado"| CORE_URLS
+    CORE_VIEWS -->|"Renderiza"| CORE_TEMPLATE
+
+    %% Banco de Dados
+    MODELS -->|"CRUD"| SQLITE
+    VIEWS -->|"Sessões"| SESSION_DB
+    DJANGO_MGMT -->|"manage.py migrate"| SQLITE
+
+    %% API Externa
+    SERVICES -->|"HTTP POST<br/>Bearer Token"| OPENROUTER
+    OPENROUTER -->|"Roteia"| LLM_MODEL
+
+    %% Infraestrutura
+    GIT -->|"Push"| CI_CD
+    CI_CD -->|"Roda"| TESTS_PY
+    CI_CD -->|"Roda"| TESTS_JS
+    ENV -->|"Alimenta"| SETTINGS
+    REQS -->|"Instala"| DJANGO_MGMT
+
+    %% Documentação
+    DOCS -.->|"Referencia"| README
+    PROMPTS_DOC -.->|"Alimenta"| PROMPTS
 ```
 
 ---
