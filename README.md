@@ -45,8 +45,8 @@ Muitas pessoas têm dificuldade em escolher um computador porque não entendem a
 
 ```bash
 # 1. Clone o repositório
-git clone https://github.com/seu-usuario/Ajuda Tech.git
-cd ajudatech
+git clone https://github.com/wagner-sousa/ajuda.tech.git
+cd ajuda.tech-wagner
 
 # 2. Crie e ative o ambiente virtual
 python -m venv venv
@@ -91,10 +91,10 @@ SECRET_KEY=sua_chave_secreta_django
 DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
 LLM_API_KEY=sua_chave_de_api_da_ia
-LLM_PROVIDER=openrouter  # ou openrouter
+LLM_PROVIDER=openrouter
 ```
 
-Observação: o projeto inclui um arquivo `.env` com valores de exemplo; não comite chaves reais. Para variáveis sensíveis em desenvolvimento, prefira usar um arquivo `.env.local` (listado no .gitignore) e rotacione chaves caso ocorram exposições.
+Observação: o projeto inclui um arquivo `.env` com valores de exemplo. Não comite chaves reais — rotacione-as caso ocorra exposição acidental.
 
 ---
 

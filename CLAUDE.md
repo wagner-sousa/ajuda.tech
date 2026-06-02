@@ -10,40 +10,68 @@
 
 ## Stack Técnica (MVP)
 
-| Camada       | Tecnologia                          |
-|--------------|-------------------------------------|
-| Linguagem    | Python 3.12+                        |
-| Framework    | Django 5.x                          |
-| Banco        | SQLite (sem persistência entre sessões) |
-| IA           | OpenRouter API (via SDK `openai`)   |
-| Frontend     | Django Templates + HTML/CSS + AJAX  |
-| Sessão       | Django Session com cookies assinados (em memória) |
+| Camada       | Tecnologia                                        |
+|--------------|---------------------------------------------------|
+| Linguagem    | Python 3.12+                                      |
+| Framework    | Django 5.x                                        |
+| Banco        | SQLite — persiste `Conversation` e `Message`      |
+| IA           | OpenRouter API (via `requests` + Bearer token)    |
+| Frontend     | Django Templates + HTML/CSS + JS modular (ESM)    |
+| Sessão       | `django.contrib.sessions.backends.db` (SQLite)    |
+| Testes PY    | pytest + pytest-django                            |
+| Testes JS    | Vitest (7 arquivos `.test.js`)                    |
 
-**Sem login, sem banco de dados de usuários — o MVP acessa o chat diretamente.**
+**Sem login, sem autenticação de usuário — o MVP acessa o chat diretamente via sessão.**
 
 ---
 
 ## Estrutura do Projeto
 
 ```
-ajuda.tech/
-├── ajuda_tech/          # Configurações Django (settings, urls, wsgi, asgi)
-├── chat/                # Única app Django
-│   ├── views.py         # Recebe POST /api/chat/send/, gerencia sessão
-│   ├── services.py      # Comunicação com OpenRouter (timeout, retry, rate limit)
-│   ├── prompts.py       # System prompts e versionamento — NÃO misturar com services
-│   ├── urls.py
-│   ├── tests.py
-│   ├── templates/chat/
-│   │   ├── chat.html
-│   │   └── components/  # message_user.html, message_bot.html
-│   └── static/chat/css/ e js/
-├── templates/base.html
-├── static/
-├── docs/                # PRD, User Stories, Diagramas, Fluxo
-├── prompts.md           # Documentação dos prompts de sistema
-├── .env.example
+ajuda.tech-wagner/
+├── ajuda_tech/              # Configurações Django
+│   ├── settings.py          # Apps, Middleware, DB, LLM, Logging
+│   ├── urls.py              # Raiz → include("chat.urls")
+│   └── wsgi.py
+├── chat/                    # App principal
+│   ├── views.py             # ChatView | SendMessageView | RecommendView
+│   ├── services.py          # OpenRouterClient (HTTP, retry, backoff)
+│   ├── prompts.py           # SYSTEM_PROMPT e PRODUCT_EXTRACTION_PROMPT
+│   ├── models.py            # Conversation + Message (persistência SQLite)
+│   ├── exceptions.py        # Hierarquia: OpenRouterError → Auth/RateLimit/Unavailable/Invalid
+│   ├── urls.py              # / | /send/ | /recommend/
+│   ├── admin.py             # Desabilitado
+│   ├── templates/chat/chat.html
+│   ├── static/chat/
+│   │   ├── css/chat.css
+│   │   ├── index.html       # Preview standalone (sem Django)
+│   │   └── js/
+│   │       ├── chatApp.js   # Orquestrador principal
+│   │       ├── chatApi.js   # HTTP + CSRF
+│   │       ├── chatUi.js    # Manipulação DOM
+│   │       ├── chatState.js # Estado da conversa
+│   │       ├── chatTheme.js # Dark/Light mode
+│   │       └── *.test.js    # Testes Vitest (7 arquivos)
+│   └── tests/               # Testes pytest
+│       ├── test_views.py
+│       ├── test_services.py
+│       ├── test_models.py
+│       ├── test_prompts.py
+│       └── test_limits.py
+├── core/                    # App auxiliar (não roteada no urls.py raiz)
+│   ├── views.py             # IndexView (TemplateView)
+│   └── templates/core/index.html
+├── docs/                    # PRD, User Stories, Diagramas, Fluxo
+├── prompts/                 # Histórico de prompts de sessão
+├── prompts-mini-projeto/    # Sessões anteriores de desenvolvimento
+├── prompts.md               # Documentação dos system prompts
+├── VIABILIDADE.md           # Análise de viabilidade técnica e de negócio
+├── AGENTS.md                # Instruções para agentes de IA
+├── .env                     # Variáveis de ambiente (não commitar chaves reais)
 ├── requirements.txt
+├── package.json             # Dependências JS (vitest, dompurify, marked)
+├── pytest.ini
+├── vitest.config.js
 └── manage.py
 ```
 
@@ -51,24 +79,41 @@ ajuda.tech/
 
 ## Arquivos Críticos
 
-### `chat/services.py`
-Toda a comunicação com OpenRouter. Deve ter:
-- Timeout handling nas requisições HTTP
-- Retry com exponential backoff
-- Rate limiting (máx. 10 msgs/min por sessão)
-- Limite de histórico: **20 mensagens** (janela de contexto)
+### `chat/services.py` — `OpenRouterClient`
+Toda comunicação com OpenRouter. Implementado:
+- Autenticação via `Bearer {LLM_API_KEY}`
+- Timeout configurável via `LLM_TIMEOUT` (default: 30s)
+- Retry com exponential backoff para erros 5xx e Timeout (default: 2 retries)
+- Retry separado para 429 com `Retry-After` (default: até 10 tentativas)
+- Sem retry para erros permanentes: 401, 402, 4xx inesperado
+- Detecção automática de extração de produtos para ajustar `max_tokens`
+- Remoção de blocos `<think>...</think>` (DeepSeek reasoning)
 
 ### `chat/prompts.py`
-System prompts isolados aqui. Nunca embutir prompts em `views.py` ou `services.py`.
-- Versionar os prompts (ex: `SYSTEM_PROMPT_V1`)
-- `temperature: 0.7`, `max_tokens: 500` nas perguntas / `800` na recomendação
+System prompts isolados. Nunca embutir prompts em `views.py` ou `services.py`.
+- `SYSTEM_PROMPT` — instruções do Herbert para conversa
+- `PRODUCT_EXTRACTION_PROMPT` — extrai 3 produtos (budget/ideal/premium) em JSON
+- `temperature: 0.7` em todas as chamadas
+- `max_tokens: 800` para chat normal, `1500` para extração de produtos
 
-### `chat/views.py`
-- Endpoint: `POST /api/chat/send/` (recebe `{message, session_id}`)
-- Recupera histórico da sessão Django
-- Chama `services.process_message(history, new_message)`
-- Salva par usuário/resposta na sessão
-- Limite: **50 mensagens por sessão**
+### `chat/views.py` — Endpoints
+- `GET /` → `ChatView`: renderiza `chat.html`, reinicia sessão (`flush()`) a cada visita
+- `POST /send/` → `SendMessageView`: recebe `{"message": "..."}`, persiste no banco, chama IA, retorna `{"reply": "..."}`
+- `POST /recommend/` → `RecommendView`: usa histórico da sessão, retorna `{"products": [...]}`
+
+### `chat/models.py`
+- `Conversation` — vinculada a `session_key`, campo `is_completed`
+- `Message` — FK para Conversation, `role` (user/assistant), `content`
+- `Conversation.get_history()` — retorna lista de dicts `{role, content}` ordenada por `created_at`
+
+### `chat/exceptions.py`
+```
+OpenRouterError
+├── AuthenticationError   (401/403)
+├── RateLimitError        (429) — tem atributo retry_after
+├── ServiceUnavailableError (5xx, timeout, connection error)
+└── InvalidResponseError  (JSON inválido, estrutura inesperada)
+```
 
 ---
 
@@ -85,26 +130,32 @@ O assistente **deve coletar estas 4 informações antes de recomendar**:
 - Nunca recomendar antes de ter as informações essenciais
 - Fallback após 8 trocas: recomendar com o que tem
 - Redirecionar gentilmente se o usuário fugir do tema
+- Sempre responder em português do Brasil
+- Nunca exibir raciocínio interno antes da resposta
 
-**Formato da recomendação final — sempre 3 opções:**
-- Opção Ideal (melhor custo-benefício)
-- Opção Mais Barata (mínimo que resolve o problema)
-- Opção Mais Cara (durabilidade e desempenho futuros)
+**Formato da recomendação final — sempre 3 opções (via `/recommend/`):**
+- `budget` — Opção Mais Barata (mínimo que resolve o problema)
+- `ideal` — Opção Ideal (melhor custo-benefício)
+- `premium` — Opção Mais Cara (durabilidade e desempenho futuros)
 
 ---
 
 ## Variáveis de Ambiente
 
 ```env
-OPENROUTER_API_KEY=           # Chave da API OpenRouter
-OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
-SECRET_KEY=                   # Chave secreta Django
+SECRET_KEY=               # Chave secreta Django
 DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
-SESSION_ENGINE=django.contrib.sessions.backends.signed_cookies
+LLM_API_KEY=              # Chave da API OpenRouter (obrigatória)
+LLM_PROVIDER=openrouter   # Apenas informativo; URL é hardcoded
+LLM_MODEL=deepseek/deepseek-v4-flash:free  # Modelo padrão
+LLM_TIMEOUT=30            # Timeout em segundos
+SITE_URL=http://localhost:8000
+SITE_NAME=Ajuda Tech
+LOG_LEVEL=INFO
 ```
 
-**Nunca hardcodar chaves no código-fonte.**
+**Nunca hardcodar chaves no código-fonte. O `.env` já existe no repositório com valores de exemplo — não commitar chaves reais.**
 
 ---
 
@@ -113,18 +164,33 @@ SESSION_ENGINE=django.contrib.sessions.backends.signed_cookies
 ```bash
 python -m venv venv
 source venv/bin/activate        # macOS/Linux
-pip install -r requirements.txt
-cp .env.example .env            # preencher com sua API key
-python manage.py migrate        # apenas se houver models
+# venv\Scripts\activate         # Windows
+python -m pip install -r requirements.txt
+# Editar .env e preencher LLM_API_KEY
+python manage.py migrate
 python manage.py runserver
 # Acesse: http://localhost:8000
+```
+
+### Testes
+
+```bash
+# Python (pytest)
+pytest
+
+# JavaScript (Vitest)
+npm install
+npm test
+
+# Preview do frontend sem Django
+npx serve chat/static/chat
 ```
 
 ---
 
 ## Convenções
 
-- **Apps Django:** minúsculo (`chat`)
+- **Apps Django:** minúsculo (`chat`, `core`)
 - **Views e URLs:** snake_case (`chat_view`, `send_message`)
 - **Templates:** snake_case + `.html`
 - **Commits:** descritivos em português ou inglês (prefixo `feat:`, `fix:`, `docs:`)
@@ -134,26 +200,30 @@ python manage.py runserver
 
 ## Segurança
 
-- Proteção CSRF ativa em todos os formulários Django
+- Proteção CSRF ativa em todos os formulários e requisições AJAX
 - Nenhum dado pessoal sensível coletado ou armazenado
 - Validação de input do lado do servidor (não confiar apenas no frontend)
-- Sanitizar entradas para evitar prompt injection
+- Sanitização de HTML via `DOMPurify` no frontend (renderização de Markdown)
+- Sem admin Django habilitado (`admin.py` não registra models)
 
 ---
 
 ## Escopo do MVP
 
 **Dentro do escopo:**
-- Chat conversacional com IA
-- Recomendação ao final da conversa (3 opções)
-- Histórico de sessão em memória
-- Interface responsiva (desktop + mobile)
+- Chat conversacional com IA (Herbert)
+- Recomendação ao final da conversa (3 opções em JSON via `/recommend/`)
+- Histórico de sessão persistido no SQLite por `session_key`
+- Interface responsiva com suporte a dark/light mode
+- Renderização de Markdown nas respostas do assistente
 
 **Fora do escopo (pós-MVP):**
 - Login / histórico persistente entre sessões
 - Links de afiliados / comparativo de produtos reais
 - App mobile nativo
 - Múltiplos idiomas
+- Limite de mensagens por sessão (não implementado)
+- Rate limiting por sessão no servidor (não implementado)
 
 ---
 
@@ -168,3 +238,4 @@ python manage.py runserver
 | `docs/FLUXO_USUARIO.md`         | Jornada do usuário (Mermaid)                |
 | `prompts.md`                    | System prompt do Herbert + exemplos few-shot |
 | `VIABILIDADE.md`                | Análise de viabilidade técnica e de negócio |
+| `AGENTS.md`                     | Instruções para agentes de IA               |
