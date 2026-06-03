@@ -19,7 +19,6 @@ from chat.exceptions import (
     RateLimitError,
     ServiceUnavailableError,
 )
-from chat.models import Conversation, Message
 from chat.services import OpenRouterClient
 
 logger = logging.getLogger(__name__)
@@ -56,14 +55,13 @@ class SendMessageView(View):
         if not message:
             return JsonResponse({"error": "O campo 'message' é obrigatório."}, status=400)
 
-        # 2. Recupera ou cria a conversa vinculada à sessão
-        conversation = self._get_or_create_conversation(request)
+        # 2. Recupera histórico da sessão
+        history = request.session.get("chat_history", [])
 
-        # 3. Persiste mensagem do usuário
-        Message.objects.create(conversation=conversation, role="user", content=message)
+        # 3. Adiciona mensagem do usuário ao histórico (em memória/sessão)
+        history.append({"role": "user", "content": message})
 
         # 4. Chama o serviço de IA
-        history = conversation.get_history()
         try:
             client = OpenRouterClient()
             reply = client.chat_completion(history)
@@ -86,18 +84,11 @@ class SendMessageView(View):
             logger.warning("Erro ao processar resposta: %s", exc)
             return JsonResponse({"error": "Não foi possível processar a resposta."}, status=503)
 
-        # 5. Persiste resposta do assistente
-        Message.objects.create(conversation=conversation, role="assistant", content=reply)
+        # 5. Adiciona resposta do assistente e salva na sessão (limite 50 msgs)
+        history.append({"role": "assistant", "content": reply})
+        request.session["chat_history"] = history[-50:]
 
         return JsonResponse({"reply": reply})
-
-    def _get_or_create_conversation(self, request) -> Conversation:
-        if not request.session.session_key:
-            request.session.create()
-        conversation, _ = Conversation.objects.get_or_create(
-            session_key=request.session.session_key
-        )
-        return conversation
 
 
 class RecommendView(View):
@@ -111,13 +102,7 @@ class RecommendView(View):
 
     def post(self, request):
         # Recupera histórico da conversa da sessão atual
-        history: list[dict] = []
-        if request.session.session_key:
-            conv = Conversation.objects.filter(
-                session_key=request.session.session_key
-            ).first()
-            if conv:
-                history = conv.get_history()
+        history = request.session.get("chat_history", [])
 
         try:
             client = OpenRouterClient()
