@@ -31,6 +31,7 @@ Um assistente conversacional baseado em IA que:
 2. Interpreta as respostas em linguagem natural
 3. Recomenda o tipo de máquina (PC ou Notebook) e as especificações mínimas recomendadas
 4. Explica o motivo da recomendação de forma clara e acessível
+5. Comunicação deve ser sempre em português do Brasil
 
 ---
 

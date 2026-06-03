@@ -1,7 +1,7 @@
 # Ajuda Tech — Agent Instructions
 
 Assistente conversacional com IA que ajuda usuários leigos a escolher o computador ideal.
-Stack: **Python 3.12+, Django 5.x, SQLite, OpenRouter API**.
+Stack: **Python 3.12+, Django 5.x, OpenRouter API**.
 
 ## Documentação de referência
 
