@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   renderMessages,
   showError,
@@ -41,6 +41,57 @@ describe('chatUi', () => {
     expect(items[1].classList.contains('chat-message--user')).toBe(true);
     expect(items[0].textContent).toBe('Olá');
     expect(items[1].textContent).toBe('Oi');
+  });
+
+  it('cada mensagem tem um botão de copiar', () => {
+    renderMessages(container, [
+      { role: 'bot', text: 'Olá' },
+      { role: 'user', text: 'Oi' },
+    ]);
+    const btns = container.querySelectorAll('.chat-copy-btn');
+    expect(btns).toHaveLength(2);
+    btns.forEach((btn) => {
+      expect(btn.getAttribute('aria-label')).toBe('Copiar mensagem');
+      expect(btn.type).toBe('button');
+    });
+  });
+
+  it('clicar no botão de copiar chama clipboard.writeText com o texto da mensagem', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText },
+      configurable: true,
+    });
+
+    renderMessages(container, [{ role: 'bot', text: 'Recomendação do Herbert' }]);
+    const btn = container.querySelector('.chat-copy-btn');
+    btn.click();
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(writeText).toHaveBeenCalledWith('Recomendação do Herbert');
+  });
+
+  it('botão de copiar fica com classe --copied após sucesso e reverte após 2s', async () => {
+    vi.useFakeTimers();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText },
+      configurable: true,
+    });
+
+    renderMessages(container, [{ role: 'bot', text: 'Texto' }]);
+    const btn = container.querySelector('.chat-copy-btn');
+    btn.click();
+    await Promise.resolve();
+
+    expect(btn.classList.contains('chat-copy-btn--copied')).toBe(true);
+    expect(btn.getAttribute('aria-label')).toBe('Copiado!');
+
+    vi.advanceTimersByTime(2000);
+    expect(btn.classList.contains('chat-copy-btn--copied')).toBe(false);
+    expect(btn.getAttribute('aria-label')).toBe('Copiar mensagem');
+
+    vi.useRealTimers();
   });
 
   it('bot messages use parseMarkdown; user messages use textContent', () => {
