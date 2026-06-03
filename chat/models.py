@@ -1,6 +1,9 @@
 from django.db import models
 
+# Modelos desativados — o histórico agora é mantido em request.session
+# conforme definido na tarefa #12 para simplificação do MVP.
 
+"""
 class Conversation(models.Model):
     session_key = models.CharField(
         max_length=40,
@@ -24,7 +27,6 @@ class Conversation(models.Model):
         return f"Conversa {self.session_key} ({'concluída' if self.is_completed else 'ativa'})"
 
     def get_history(self) -> list[dict]:
-        """Retorna o histórico como lista de dicts {role, content} ordenados por criação."""
         return list(
             self.messages.values("role", "content").order_by("created_at")
         )
@@ -53,3 +55,4 @@ class Message(models.Model):
     def __str__(self) -> str:
         preview = self.content[:50]
         return f"[{self.role}] {preview}"
+"""

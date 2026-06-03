@@ -1,6 +1,9 @@
 from django.contrib import admin
-from chat.models import Conversation, Message
 
+# Registro de modelos desativado — a aplicação utiliza request.session.
+
+"""
+from chat.models import Conversation, Message
 
 @admin.register(Conversation)
 class ConversationAdmin(admin.ModelAdmin):
@@ -20,3 +23,4 @@ class MessageAdmin(admin.ModelAdmin):
     def content_preview(self, obj):
         return obj.content[:80]
     content_preview.short_description = "Conteúdo"
+"""
