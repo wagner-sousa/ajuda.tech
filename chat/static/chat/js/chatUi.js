@@ -59,6 +59,17 @@ export function renderMessages(container, messages, parseMarkdown = (text) => te
       wrapper.appendChild(resendBtn);
     }
 
+    // Se está em processo de envio (resend), exibe botão desabilitado com texto 'Enviando...'
+    if (msg.role === 'user' && msg.status === 'sending') {
+      const sendingBtn = document.createElement('button');
+      sendingBtn.className = 'chat-resend-btn';
+      sendingBtn.type = 'button';
+      sendingBtn.disabled = true;
+      sendingBtn.setAttribute('aria-label', 'Enviando mensagem');
+      sendingBtn.innerHTML = RELOAD_ICON + '<span class="chat-resend-text">Enviando...</span>';
+      wrapper.appendChild(sendingBtn);
+    }
+
     container.appendChild(wrapper);
   }
 }
