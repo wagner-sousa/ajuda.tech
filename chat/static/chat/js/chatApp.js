@@ -128,13 +128,9 @@ export function initChatApp(root = document) {
     // Ao clicar, remove hint de erro
     clearError(errorEl);
 
-    // Ao clicar, remove hint de erro
-    clearError(errorEl);
-
-    // marca o estado 'sending' na mensagem para que o render exiba 'Enviando...'
     // Desabilita o botão enquanto processa
     btn.disabled = true;
-    btn.textContent = "Enviando...";
+    btn.innerHTML = '<span class="chat-resend-text">Enviando...</span>';
 
     // Localiza a última mensagem 'failed' com mesmo texto e marca como 'sending'
     for (let i = state.messages.length - 1; i >= 0; i--) {
