@@ -43,6 +43,18 @@ export function renderMessages(container, messages, parseMarkdown = (text) => te
 
     wrapper.appendChild(el);
     wrapper.appendChild(createCopyButton(() => el.textContent));
+
+    // Se a mensagem do usuário estiver com status 'failed', exibe botão de Reenviar
+    if (msg.role === 'user' && msg.status === 'failed') {
+      const resendBtn = document.createElement('button');
+      resendBtn.className = 'chat-resend-btn';
+      resendBtn.type = 'button';
+      resendBtn.textContent = 'Reenviar';
+      // armazena o texto para que o app possa tratar o clique
+      resendBtn.dataset.text = msg.text;
+      wrapper.appendChild(resendBtn);
+    }
+
     container.appendChild(wrapper);
   }
 }
