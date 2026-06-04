@@ -73,9 +73,15 @@ export function initChatApp(root = document) {
       state = appendMessage(state, { role: 'bot', text: response.reply });
       refresh();
     } catch (err) {
-      // Se o servidor retornou a mensagem que falhou, adiciona ao histórico com status 'failed'
+      // Se o servidor retornou a mensagem que falhou, marca a última mensagem do usuário equivalente como 'failed'
       if (err && err.failedMessage) {
-        state = appendMessage(state, { role: 'user', text: err.failedMessage, status: 'failed' });
+        for (let i = state.messages.length - 1; i >= 0; i--) {
+          const m = state.messages[i];
+          if (m.role === 'user' && m.text === err.failedMessage) {
+            state.messages[i] = { ...m, status: 'failed' };
+            break;
+          }
+        }
         refresh();
         showError(errorEl, err.message || 'Não foi possível obter resposta. Tente reenviar.');
       } else {
@@ -111,11 +117,10 @@ export function initChatApp(root = document) {
     // Ao clicar, remove hint de erro
     clearError(errorEl);
 
-    // Desabilita o botão enquanto processa
-    btn.disabled = true;
-    btn.innerHTML = '<span class="chat-resend-text">Enviando...</span>';
+    // Ao clicar, remove hint de erro
+    clearError(errorEl);
 
-    // Localiza a última mensagem 'failed' com mesmo texto e marca como 'sending'
+    // marca o estado 'sending' na mensagem para que o render exiba 'Enviando...'
     for (let i = state.messages.length - 1; i >= 0; i--) {
       const m = state.messages[i];
       if (m.role === 'user' && m.status === 'failed' && m.text === text) {
@@ -123,6 +128,11 @@ export function initChatApp(root = document) {
         break;
       }
     }
+    // mostra o indicador de escrita e desabilita entrada/enviar enquanto espera
+    setTypingVisible(typingEl, true);
+    setSendDisabled(sendBtn, true);
+    setInputDisabled(inputEl, true);
+
     refresh();
 
     try {
@@ -150,8 +160,10 @@ export function initChatApp(root = document) {
       refresh();
       showError(errorEl, err.message || 'Falha ao reenviar. Tente novamente.');
     } finally {
-      btn.disabled = false;
-      btn.textContent = 'Reenviar';
+      // restaura estados da UI
+      setTypingVisible(typingEl, false);
+      setSendDisabled(sendBtn, false);
+      setInputDisabled(inputEl, false);
     }
   });
 
