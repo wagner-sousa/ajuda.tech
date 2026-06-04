@@ -59,7 +59,6 @@ export function renderMessages(
       // ícone de reload + texto
       resendBtn.innerHTML =
         RELOAD_ICON + '<span class="chat-resend-text">Reenviar</span>';
-      resendBtn.textContent = "Reenviar";
       // armazena o texto para que o app possa tratar o clique
       resendBtn.dataset.text = msg.text;
       wrapper.appendChild(resendBtn);
