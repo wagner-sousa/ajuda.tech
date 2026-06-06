@@ -10,16 +10,16 @@
 
 ## Stack Técnica (MVP)
 
-| Camada       | Tecnologia                                        |
-|--------------|---------------------------------------------------|
-| Linguagem    | Python 3.12+                                      |
-| Framework    | Django 5.x                                        |
-| Banco        | SQLite — persiste `Conversation` e `Message`      |
-| IA           | OpenRouter API (via `requests` + Bearer token)    |
-| Frontend     | Django Templates + HTML/CSS + JS modular (ESM)    |
-| Sessão       | `django.contrib.sessions.backends.db` (SQLite)    |
-| Testes PY    | pytest + pytest-django                            |
-| Testes JS    | Vitest (7 arquivos `.test.js`)                    |
+| Camada       | Tecnologia                                                                 |
+|--------------|----------------------------------------------------------------------------|
+| Linguagem    | Python 3.12+                                                               |
+| Framework    | Django 5.x                                                                 |
+| Banco        | SQLite configurado para o projeto, mas o histórico de chat não é persistido |
+| IA           | OpenRouter API (via `requests` + Bearer token)                             |
+| Frontend     | Django Templates + HTML/CSS + JS modular (ESM)                             |
+| Sessão       | `django.contrib.sessions.backends.signed_cookies`                           |
+| Testes PY    | pytest + pytest-django                                                     |
+| Testes JS    | Vitest (7 arquivos `.test.js`)                                             |
 
 **Sem login, sem autenticação de usuário — o MVP acessa o chat diretamente via sessão.**
 
@@ -37,7 +37,7 @@ ajuda.tech-wagner/
 │   ├── views.py             # ChatView | SendMessageView | RecommendView
 │   ├── services.py          # OpenRouterClient (HTTP, retry, backoff)
 │   ├── prompts.py           # SYSTEM_PROMPT e PRODUCT_EXTRACTION_PROMPT
-│   ├── models.py            # Conversation + Message (persistência SQLite)
+│   ├── models.py            # Contém classes de persistência comentadas; histórico atual em sessão
 │   ├── exceptions.py        # Hierarquia: OpenRouterError → Auth/RateLimit/Unavailable/Invalid
 │   ├── urls.py              # / | /send/ | /recommend/
 │   ├── admin.py             # Desabilitado
@@ -98,13 +98,13 @@ System prompts isolados. Nunca embutir prompts em `views.py` ou `services.py`.
 
 ### `chat/views.py` — Endpoints
 - `GET /` → `ChatView`: renderiza `chat.html`, reinicia sessão (`flush()`) a cada visita
-- `POST /send/` → `SendMessageView`: recebe `{"message": "..."}`, persiste no banco, chama IA, retorna `{"reply": "..."}`
+- `POST /send/` → `SendMessageView`: recebe `{"message": "..."}`, armazena o histórico em `request.session`, chama IA, retorna `{"reply": "..."}`
 - `POST /recommend/` → `RecommendView`: usa histórico da sessão, retorna `{"products": [...]}`
 
 ### `chat/models.py`
-- `Conversation` — vinculada a `session_key`, campo `is_completed`
-- `Message` — FK para Conversation, `role` (user/assistant), `content`
-- `Conversation.get_history()` — retorna lista de dicts `{role, content}` ordenada por `created_at`
+- `Conversation` — classe comentada como referência, não utilizada na implementação atual
+- `Message` — classe comentada como referência, não utilizada na implementação atual
+- O histórico de conversa atual é mantido em `request.session['chat_history']`
 
 ### `chat/exceptions.py`
 ```
@@ -213,7 +213,7 @@ npx serve chat/static/chat
 **Dentro do escopo:**
 - Chat conversacional com IA (Herbert)
 - Recomendação ao final da conversa (3 opções em JSON via `/recommend/`)
-- Histórico de sessão persistido no SQLite por `session_key`
+- Histórico de sessão mantido no cookie assinado e em `request.session`
 - Interface responsiva com suporte a dark/light mode
 - Renderização de Markdown nas respostas do assistente
 

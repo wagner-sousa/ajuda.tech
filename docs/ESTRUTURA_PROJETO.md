@@ -13,39 +13,51 @@ ajuda.tech/
 │   ├── __init__.py
 │   ├── settings.py                # Configurações do projeto
 │   ├── urls.py                    # Rotas principais do projeto
-│   ├── asgi.py                    # Configuração ASGI para async
 │   └── wsgi.py                    # Configuração WSGI para produção
-├── chat/                          # App Django principal (única app necessária)
-│   ├── templates/chat/            # Templates da app de chat
-│   │   ├── chat.html              # Interface do chatbot
-│   │   └── components/            # Componentes reutilizáveis
-│   │       ├── message_user.html
-│   │       └── message_bot.html
-│   ├── static/chat/               # Arquivos estáticos da app de chat
-│   │   ├── css/
-│   │   │   └── chat.css
-│   │   └── js/
-│   │       └── chat.js            # Lógica frontend do chat
-│   ├── admin.py                   # (Vazio - sem models persistentes)
-│   ├── apps.py                    # Configuração da app
-│   ├── views.py                   # Views do chat
-│   ├── urls.py                    # Rotas da app de chat
-│   ├── services.py                # Lógica de comunicação com OpenRouter
+├── chat/                          # App Django principal
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── exceptions.py
+│   ├── models.py                  # Classes de persistência comentadas; histórico atual em sessão
 │   ├── prompts.py                 # Gerenciamento de System Prompts
-│   ├── consumers.py               # Consumers para Django Channels (opcional)
-│   ├── routing.py                 # Configuração de roteamento WebSocket
-│   └── tests.py                   # Testes unitários
-├── static/                        # Arquivos estáticos globais
-│   ├── css/
-│   └── js/
-├── templates/                     # Templates globais
-│   └── base.html                  # Template base
-├── .env.example                   # Exemplo de variáveis de ambiente
-├── requirements.txt               # Dependências do projeto
-├── Dockerfile                     # Configuração do container Docker
-├── manage.py                      # Script de gerenciamento do Django
-├── pytest.ini                     # Configuração do pytest
-└── README.md                      # Documentação do projeto
+│   ├── services.py                # Lógica de comunicação com OpenRouter
+│   ├── urls.py                    # Rotas do chat
+│   ├── views.py                   # ChatView, SendMessageView, RecommendView
+│   ├── migrations/
+│   │   └── __init__.py
+│   ├── templates/chat/chat.html
+│   └── static/chat/
+│       ├── css/chat.css
+│       ├── index.html             # Preview standalone (sem Django)
+│       └── js/
+│           ├── chatApp.js
+│           ├── chatApi.js
+│           ├── chatUi.js
+│           ├── chatState.js
+│           └── chatTheme.js
+├── core/                          # App auxiliar (landing page / não roteada)
+│   ├── __init__.py
+│   ├── apps.py
+│   ├── urls.py
+│   ├── views.py
+│   └── templates/core/index.html
+├── docs/                          # Documentação do projeto
+│   ├── DIAGRAMA_SEQUENCIA.md
+│   ├── ESTRUTURA_PROJETO.md
+│   ├── FLUXO_USUARIO.md
+│   ├── PRD.md
+│   └── USER_STORIES.md
+├── prompts/                       # Histórico de prompts de sessão
+├── prompts-mini-projeto/          # Sessões anteriores de desenvolvimento
+├── .gitignore
+├── AGENTS.md
+├── requirements.txt
+├── package.json
+├── pytest.ini
+├── vitest.config.js
+├── db.sqlite3
+└── manage.py
 ```
 
 ## Descrição dos Componentes Críticos para Integração com LLM
@@ -77,56 +89,35 @@ Implementação de WebSocket para comunicação em tempo real:
 
 ## Arquivos de Ambiente
 
-### `.env.example`
+### `.env`
+O projeto não inclui um arquivo `.env` no repositório. Crie um arquivo local com as variáveis necessárias.
+
 ```bash
-# OpenRouter API
-OPENROUTER_API_KEY=sua_chave_api_aqui
-OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
-
-# Configurações do Django
-DEBUG=True
 SECRET_KEY=sua_chave_secreta_aqui
+DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
-
-# Configuração de Sessão (memória)
-SESSION_ENGINE=django.contrib.sessions.backends.signed_cookies
+LLM_API_KEY=sua_chave_de_api_aqui
+LLM_PROVIDER=openai
+LLM_MODEL=deepseek/deepseek-v4-flash:free
+LLM_TIMEOUT=30
+SITE_URL=http://localhost:8000
+SITE_NAME=Ajuda Tech
+LOG_LEVEL=INFO
 ```
 
 ### `requirements.txt`
 ```
 Django>=5.0,<6.0
-djangorestframework>=3.14.0
-channels>=4.0.0          # Opcional - apenas se usar WebSocket
-openai>=1.0.0
-python-dotenv>=1.0.0
-pytest>=7.4.0
-pytest-django>=4.5.0
+python-decouple>=3.8
+requests>=2.31.0
+django-cors-headers>=4.0.0
+pytest>=8.0.0
+pytest-django>=4.8.0
+pytest-cov>=5.0.0
 ```
 
-### `Dockerfile`
-```dockerfile
-FROM python:3.11-slim
-
-WORKDIR /app
-
-# Instala dependências do sistema
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copia e instala dependências Python
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copia código da aplicação
-COPY . .
-
-# Expose porta do Django
-EXPOSE 8000
-
-# Comando de inicialização
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
-```
+### Docker / Container
+Este repositório não inclui um `Dockerfile` atualmente.
 
 ## Convenções de Nomenclatura
 

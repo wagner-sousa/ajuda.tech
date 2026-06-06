@@ -11,7 +11,7 @@ O projeto é um assistente IA que ajuda pessoas leigas a escolher
 computador. A stack é:
 
 - Django 5.x (Python) no backend
-- SQLite como banco
+- SQLite configurado para Django; o histórico de chat é mantido na sessão de usuário
 - OpenRouter API pra chamar o LLM (DeepSeek ou Nemotron)
 - Frontend com HTML, CSS e JavaScript puro (ES Modules)
 - Testes com pytest e Vitest
@@ -39,11 +39,10 @@ ajuda.tech/
 ```
 
 O fluxo é simples: o usuário manda uma mensagem no chat, o Django
-recebe, salva no banco, chama o OpenRouter, recebe a resposta e
+recebe, mantém o histórico na sessão, chama o OpenRouter, recebe a resposta e
 devolve pro frontend renderizar.
 
-Sobre o banco: cada Conversation tem várias Messages, ligadas por
-session_key. É tipo 1 pra N.
+Sobre o banco: o projeto mantém o histórico de chat em sessão, não em conversas e mensagens persistidas no banco.
 
 Pra te dar uma ideia do formato que eu quero, segue um exemplo
 de diagrama Mermaid de um sistema parecido:
@@ -129,7 +128,7 @@ graph TB
             URLS_CHAT["urls.py<br/>/ | /send/ | /recommend/"]
             SERVICES["services.py<br/>OpenRouterClient"]
             PROMPTS["prompts.py<br/>System Prompts (Herbert)"]
-            MODELS["models.py<br/>Conversation + Message"]
+            MODELS["models.py<br/>Classes comentadas; não usadas no chat"]
             EXCEPTIONS["exceptions.py<br/>AuthError | RateLimitError | ServiceUnavailable"]
             ADMIN["admin.py<br/>(Desabilitado)"]
             TEMPLATES["templates/chat/chat.html"]
@@ -145,7 +144,7 @@ graph TB
 
     subgraph "🗄️ Banco de Dados"
         SQLITE[("db.sqlite3<br/>SQLite")]
-        SESSION_DB[("Sessões<br/>Database-backed")]
+        SESSION_DB[("Sessões<br/>Cookies assinados / request.session")]
     end
 
     subgraph "☁️ API Externa"
@@ -179,7 +178,7 @@ graph TB
     JS_API -->|"POST /send/ (JSON + CSRF)"| VIEWS
 
     ROOT_URLS -->|"include"| URLS_CHAT
-    VIEWS -->|"Lê/Escreve"| MODELS
+    VIEWS -->|"Lê/Escreve (não usado para chat)"| MODELS
     VIEWS -->|"Chama"| SERVICES
     SERVICES -->|"Lê"| PROMPTS
     SERVICES -->|"Lança"| EXCEPTIONS
@@ -191,9 +190,9 @@ graph TB
     CORE_VIEWS -.->|"⚠️ Não roteado"| CORE_URLS
     CORE_VIEWS -->|"Renderiza"| CORE_TEMPLATE
 
-    MODELS -->|"CRUD"| SQLITE
+    MODELS -->|"Não usado para chat"| SQLITE
     VIEWS -->|"Sessões"| SESSION_DB
-    DJANGO_MGMT -->|"manage.py migrate"| SQLITE
+    DJANGO_MGMT -->|"Gerencia o DB"| SQLITE
 
     SERVICES -->|"HTTP POST<br/>Bearer Token"| OPENROUTER
     OPENROUTER -->|"Roteia"| LLM_MODEL
