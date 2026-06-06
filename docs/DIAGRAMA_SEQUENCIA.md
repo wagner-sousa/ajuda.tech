@@ -1,53 +1,43 @@
 # Diagrama de Sequência - Fluxo de Processamento de Mensagem
 
-**Simplificação do MVP:** Sem banco de dados, sem login.
+**Estado atual do MVP:** Chat sem login, histórico em sessão, sem persistência de conversa no banco.
 
 ## Código PlantUML
 
 ```plantuml
 @startuml
-title Fluxo de Processamento de Mensagem - ajuda.tech (MVP Simplificado)
+title Fluxo de Processamento de Mensagem - ajuda.tech (MVP Atual)
 
 actor "Usuário Leigo" as User
 participant "Frontend\n(Chat Interface)" as Frontend
 participant "Django View\n(chat/views.py)" as DjangoView
-participant "Session\n(Memória)" as Session
+participant "Session\n(Cookie assinado)" as Session
 participant "LLM Service\n(chat/services.py)" as LLMService
 participant "System Prompt\n(chat/prompts.py)" as SystemPrompt
 participant "OpenRouter API" as OpenRouter
-participant "Text Processor\n(chat/utils.py)" as TextProcessor
 
 == Etapa 1: Envio da Mensagem ==
 User ->> Frontend: Digita mensagem informal
 Frontend ->> Frontend: Valida entrada\n(texto não vazio)
-Frontend ->> DjangoView: POST /api/chat/send/\n(JSON: {message, session_id})
+Frontend ->> DjangoView: POST /send/\n(JSON: {message})
 
-== Etapa 2: Recuperação do Histórico (Memória) ==
-DjangoView ->> Session: GET histórico da sessão\n(session_id)
-Session -->> DjangoView: Lista de mensagens\nanteriores (em memória)
+== Etapa 2: Recuperação do Histórico ==
+DjangoView ->> Session: GET histórico da sessão\n(request.session["chat_history"])
+Session -->> DjangoView: Lista de mensagens anteriores
 
 == Etapa 3: Processamento pela LLM ==
-DjangoView ->> LLMService: process_message(\nhistory, new_message)
-LLMService ->> SystemPrompt: get_system_prompt()
-SystemPrompt -->> LLMService: System Prompt\n(tradução técnica)
-LLMService ->> LLMService: Constrói prompt completo:\nHistórico + Nova Mensagem + System Prompt
+DjangoView ->> LLMService: chat_completion(messages)
+LLMService ->> SystemPrompt: Lê SYSTEM_PROMPT (constante)
+SystemPrompt -->> LLMService: SYSTEM_PROMPT
+LLMService ->> LLMService: Constrói full_messages\n([system] + messages)
 LLMService ->> OpenRouter: POST /chat/completions\n(Headers: Authorization: Bearer API_KEY)
 OpenRouter ->> OpenRouter: Processa requisição\n(seleciona modelo LLM)
-OpenRouter -->> LLMService: Response JSON\n(texto formatado com recomendações)
+OpenRouter -->> LLMService: Response JSON\n(resposta de texto)
 
-== Etapa 4: Processamento da Resposta ==
-LLMService -->> DjangoView: Texto formatado\nda LLM
-DjangoView ->> Session: Salva mensagem do usuário\ne resposta da IA\n(em memória)
-Session -->> DjangoView: Confirmação de salvamento
-
-DjangoView ->> TextProcessor: parse_response(\nllm_response)
-TextProcessor ->> TextProcessor: Separa:\n- Explicação simples\n- Especificação técnica
-TextProcessor -->> DjangoView: StructuredResponse\n{explanation, specs}
-
-== Etapa 5: Renderização ==
-DjangoView -->> Frontend: JSON Response\n{message, explanation, specs}
-Frontend ->> Frontend: Renderiza mensagem\ncom formatação especial
-Frontend -->> User: Exibe:\n- Texto explicativo em destaque\n- Especificações em dropdown\n(collapsible)
+== Etapa 4: Atualização da Sessão ==
+LLMService -->> DjangoView: Texto da resposta
+DjangoView ->> DjangoView: Atualiza request.session["chat_history"]
+DjangoView -->> Frontend: JSON Response\n{"reply": reply}
 
 @enduml
 ```

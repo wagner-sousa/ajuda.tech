@@ -28,7 +28,7 @@ chat/
 ```bash
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env          # preencher LLM_API_KEY e SECRET_KEY
+# Crie um arquivo .env local com as variáveis necessárias (LLM_API_KEY, SECRET_KEY, etc.)
 python manage.py migrate
 python manage.py runserver     # http://localhost:8000
 pytest                         # rodar testes
