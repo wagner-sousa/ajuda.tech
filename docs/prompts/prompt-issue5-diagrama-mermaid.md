@@ -129,7 +129,7 @@ graph TB
             SERVICES["services.py<br/>OpenRouterClient"]
             PROMPTS["prompts.py<br/>System Prompts (Herbert)"]
             MODELS["models.py<br/>Classes comentadas; não usadas no chat"]
-            EXCEPTIONS["exceptions.py<br/>AuthError | RateLimitError | ServiceUnavailable"]
+            EXCEPTIONS["exceptions.py<br/>AuthenticationError | RateLimitError | ServiceUnavailableError | InvalidResponseError"]
             ADMIN["admin.py<br/>(Desabilitado)"]
             TEMPLATES["templates/chat/chat.html"]
             TESTS_PY["tests/<br/>test_models | test_views<br/>test_services | test_prompts | test_limits"]
@@ -142,9 +142,9 @@ graph TB
         DJANGO_MGMT["manage.py"]
     end
 
-    subgraph "🗄️ Banco de Dados"
+    subgraph "🗄️ Armazenamento (DB + Sessão)"
         SQLITE[("db.sqlite3<br/>SQLite")]
-        SESSION_DB[("Sessões<br/>Cookies assinados / request.session")]
+        SESSION_DB[("Sessões<br/>Cookie assinado client-side<br/>(signed_cookies / request.session)")]
     end
 
     subgraph "☁️ API Externa"
@@ -178,7 +178,7 @@ graph TB
     JS_API -->|"POST /send/ (JSON + CSRF)"| VIEWS
 
     ROOT_URLS -->|"include"| URLS_CHAT
-    VIEWS -->|"Lê/Escreve (não usado para chat)"| MODELS
+    VIEWS -.->|"Não usado no fluxo atual"| MODELS
     VIEWS -->|"Chama"| SERVICES
     SERVICES -->|"Lê"| PROMPTS
     SERVICES -->|"Lança"| EXCEPTIONS
@@ -190,7 +190,7 @@ graph TB
     CORE_VIEWS -.->|"⚠️ Não roteado"| CORE_URLS
     CORE_VIEWS -->|"Renderiza"| CORE_TEMPLATE
 
-    MODELS -->|"Não usado para chat"| SQLITE
+    MODELS -.->|"Referência histórica (não usado)"| SQLITE
     VIEWS -->|"Sessões"| SESSION_DB
     DJANGO_MGMT -->|"Gerencia o DB"| SQLITE
 
@@ -252,4 +252,3 @@ graph TB
 |-------|--------|-----------|
 | **1º ciclo** | ✅ Concluído | Geração inicial do diagrama com base no prompt completo |
 | **2º ciclo** | 🔄 Pendente | Aplicar refinamentos pós-avaliação crítica (separar visão macro/detalhada) |
-

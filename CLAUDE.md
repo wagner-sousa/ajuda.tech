@@ -19,7 +19,7 @@
 | Frontend     | Django Templates + HTML/CSS + JS modular (ESM)                             |
 | Sessão       | `django.contrib.sessions.backends.signed_cookies`                           |
 | Testes PY    | pytest + pytest-django                                                     |
-| Testes JS    | Vitest (7 arquivos `.test.js`)                                             |
+| Testes JS    | Vitest (`chat/static/chat/js/*.test.js`)                                  |
 
 **Sem login, sem autenticação de usuário — o MVP acessa o chat diretamente via sessão.**
 
@@ -51,7 +51,7 @@ ajuda.tech-wagner/
 │   │       ├── chatUi.js    # Manipulação DOM
 │   │       ├── chatState.js # Estado da conversa
 │   │       ├── chatTheme.js # Dark/Light mode
-│   │       └── *.test.js    # Testes Vitest (7 arquivos)
+│   │       └── *.test.js    # Testes Vitest
 │   └── tests/               # Testes pytest
 │       ├── test_views.py
 │       ├── test_services.py
