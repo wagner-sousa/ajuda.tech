@@ -26,10 +26,10 @@ DjangoView ->> Session: GET histórico da sessão\n(request.session["chat_histor
 Session -->> DjangoView: Lista de mensagens anteriores
 
 == Etapa 3: Processamento pela LLM ==
-DjangoView ->> LLMService: chat_completion(\nhistory, new_message)
-LLMService ->> SystemPrompt: get_system_prompt()
-SystemPrompt -->> LLMService: System Prompt\n(tradução técnica)
-LLMService ->> LLMService: Constrói prompt completo\n(Histórico + Nova Mensagem + System Prompt)
+DjangoView ->> LLMService: chat_completion(messages)
+LLMService ->> SystemPrompt: Lê SYSTEM_PROMPT (constante)
+SystemPrompt -->> LLMService: SYSTEM_PROMPT
+LLMService ->> LLMService: Constrói full_messages\n([system] + messages)
 LLMService ->> OpenRouter: POST /chat/completions\n(Headers: Authorization: Bearer API_KEY)
 OpenRouter ->> OpenRouter: Processa requisição\n(seleciona modelo LLM)
 OpenRouter -->> LLMService: Response JSON\n(resposta de texto)
