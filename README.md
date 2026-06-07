@@ -1,78 +1,112 @@
 # 💻 Ajuda Tech — Assistente Inteligente para Compra de Computadores
 
-Ajuda Tech é uma aplicação web com IA integrada que auxilia usuários leigos a encontrarem o computador ideal (PC ou Notebook) de acordo com sua necessidade e orçamento — sem precisar entender de tecnologia.
+![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Django](https://img.shields.io/badge/Django-5.x-092E20?style=for-the-badge&logo=django&logoColor=white)
+![OpenRouter](https://img.shields.io/badge/OpenRouter-LLM_API-412991?style=for-the-badge)
+![JavaScript](https://img.shields.io/badge/JavaScript-ESM-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![Vitest](https://img.shields.io/badge/Vitest-Tests-6E9F18?style=for-the-badge&logo=vitest&logoColor=white)
+![Dev_Container](https://img.shields.io/badge/Dev%20Container-Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
-<img width="821" height="948" alt="ajudatech-ai" src="https://github.com/user-attachments/assets/d6c5d397-0ccb-4011-bda1-3ea6eec01aac" />
+> Ajuda Tech é uma aplicação web com IA integrada que ajuda usuários leigos a encontrarem o computador ideal de acordo com sua necessidade e orçamento, sem exigir conhecimento técnico.
+
+![ajudatech-ai](https://github.com/user-attachments/assets/d6c5d397-0ccb-4011-bda1-3ea6eec01aac)
 
 ---
 
-## 🎯 Objetivo
+## 🎯 Sobre o Projeto
 
 Muitas pessoas têm dificuldade em escolher um computador porque não entendem as especificações técnicas. O Ajuda Tech resolve isso com uma conversa simples: o usuário descreve o que quer fazer com o computador e a IA recomenda a melhor opção.
 
----
-
-## 🚀 Funcionalidades
+### Funcionalidades
 
 - Chat interativo com IA para coleta de necessidades do usuário
 - Recomendação personalizada de PC ou Notebook com base no perfil do usuário
 - Explicações em linguagem simples, sem jargões técnicos
 - Histórico de conversas por sessão
 - Interface web responsiva e acessível
+- Preview isolado do frontend sem depender do Django
+- Suporte a tema claro/escuro e renderização segura de Markdown no chat
+
+## 📦 Pré-requisitos
+
+- Python 3.12 ou superior — verifique com `python --version`
+- pip — recomendado usar `python -m pip --version`
+- Node.js e npm para testes e preview do frontend — verifique com `node --version` e `npm --version`
+- Chave de API do provedor de LLM para executar a integração com IA, obtida em [OpenRouter](https://openrouter.ai)
+- Docker e VS Code Dev Containers, se quiser rodar o projeto no ambiente containerizado de desenvolvimento
 
 ---
 
-## 🛠️ Tecnologias (MVP)
+## 🚀 Instalação
 
-| Camada         | Tecnologia                   |
-| -------------- | ---------------------------- |
-| Backend        | Python 3.12+                 |
-| Framework      | Django 5.x                   |
-| IA             | API de LLM (Open Router) |
-| Frontend       | Django Templates + HTML/CSS  |
+### Ambiente local
 
----
-
-## 📦 Instalação e Configuração
-
-### Pré-requisitos
-
-- Python 3.12 ou superior
-- pip (recomendado usar python -m pip)
-- Chave de API do provedor de LLM (Open Router)
-
-### Passos
+#### Clone o repositório
 
 ```bash
-# 1. Clone o repositório
-git clone https://github.com/wagner-sousa/ajuda.tech.git
-cd ajuda.tech-wagner
+git clone https://github.com/SCTECH-ATIVIDADES/ajuda.tech.git
+cd ajuda.tech
+```
 
-# 2. Crie e ative o ambiente virtual
+#### Crie e ative o ambiente virtual
+
+```bash
 python -m venv venv
-source venv/bin/activate  # Linux/macOS
-venv\Scripts\activate   # Windows
+source venv/bin/activate
+```
 
-# 3. Instale as dependências
-# Recomendação: utilize o gerenciador de pacotes pip via python -m pip
+No Windows:
+
+```bash
+venv\Scripts\activate
+```
+
+#### Instale as dependências do backend
+
+```bash
 python -m pip install -r requirements.txt
+```
 
-# 4. Configure as variáveis de ambiente
-# Edite o arquivo .env (já incluso no repositório) e preencha conforme seu ambiente.
+#### Crie o arquivo de ambiente
 
-# 5. Aplique as migrações
+```bash
+cp .env.example .env
+```
+
+Depois, edite o arquivo `.env` com os valores do seu ambiente.
+
+#### Aplique as migrações
+
+```bash
 python manage.py migrate
+```
 
-# 6. Execute testes (opcional)
-pytest
+#### Inicie o servidor de desenvolvimento
 
-# 7. Inicie o servidor de desenvolvimento
+```bash
 python manage.py runserver
 ```
 
 Acesse em: `http://localhost:8000`
 
-### Front-end do chat (preview local, sem Django)
+### Dev Container com Docker
+
+O projeto inclui configuração de desenvolvimento em container por meio de [.devcontainer/devcontainer.json](.devcontainer/devcontainer.json) e [.devcontainer/Dockerfile](.devcontainer/Dockerfile).
+
+#### Requisitos para usar o Dev Container
+
+- Docker em execução na máquina
+- VS Code com a extensão Dev Containers
+
+#### Como abrir o projeto no container
+
+1. Clone o repositório.
+2. Abra a pasta `ajuda.tech` no VS Code.
+3. Execute o comando `Dev Containers: Reopen in Container`.
+4. Aguarde o `postCreateCommand` instalar automaticamente as dependências Python e Node.
+5. Inicie a aplicação com `python manage.py runserver`.
+
+### Frontend do chat (preview local, sem Django)
 
 ```bash
 npm install
@@ -91,14 +125,83 @@ SECRET_KEY=sua_chave_secreta_django
 DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
 LLM_API_KEY=sua_chave_de_api_da_ia
-LLM_PROVIDER=openrouter
+LLM_PROVIDER=openai
+LLM_MODEL=deepseek/deepseek-v4-flash:free
+LLM_TIMEOUT=30
+SITE_URL=http://localhost:8000
+SITE_NAME=Ajuda Tech
+LOG_LEVEL=INFO
 ```
 
-Observação: o projeto inclui um arquivo `.env` com valores de exemplo. Não comite chaves reais — rotacione-as caso ocorra exposição acidental.
+O repositório não deve receber chaves reais. Use o `.env.example` como base e ajuste os valores conforme seu ambiente.
+
+O token usado em `LLM_API_KEY` deve ser gerado na sua conta em [OpenRouter](https://openrouter.ai).
 
 ---
 
-## 📁 Estrutura do Projeto — Diagrama do Ecossistema
+## 🧪 Testes
+
+### Backend
+
+```bash
+pytest
+```
+
+### Frontend
+
+```bash
+npm test
+```
+
+### Modo watch para os testes JS
+
+```bash
+npm run test:watch
+```
+
+Os testes JavaScript usam Vitest com ambiente `jsdom`, e os testes Python usam `pytest` com configuração definida em `pytest.ini`.
+
+---
+
+## 🌐 Endpoints Principais
+
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| GET | / | Renderiza o chat e inicia uma nova sessão |
+| POST | /send/ | Recebe a mensagem do usuário e retorna a resposta da IA |
+| POST | /recommend/ | Retorna uma recomendação estruturada com produtos |
+
+---
+
+## 📁 Estrutura do Projeto
+
+### Visão simplificada
+
+```shell
+ajuda.tech/
+├── .devcontainer/
+├── ajuda_tech/
+├── chat/
+│   ├── static/chat/
+│   │   ├── css/
+│   │   └── js/
+│   ├── templates/chat/
+│   ├── tests/
+│   ├── prompts.py
+│   ├── services.py
+│   ├── urls.py
+│   └── views.py
+├── core/
+├── docs/
+├── logs/
+├── manage.py
+├── package.json
+├── pytest.ini
+├── requirements.txt
+└── README.md
+```
+
+### Diagrama do Ecossistema
 
 O diagrama abaixo representa a arquitetura completa do Ajuda Tech, incluindo frontend, backend, banco de dados, integração com API externa, infraestrutura e documentação:
 
@@ -144,12 +247,12 @@ graph TB
 
     subgraph "🗄️ Banco de Dados"
         SQLITE[("db.sqlite3<br/>SQLite")]
-        SESSION_DB[("Sessões<br/>Database-backed")]
+        SESSION_DB[("Sessões<br/>Cookies Assinados")]
     end
 
     subgraph "☁️ API Externa"
         OPENROUTER["OpenRouter API<br/>api.openrouter.ai/v1/chat/completions"]
-        LLM_MODEL["Modelo LLM<br/>Nemotron / DeepSeek"]
+        LLM_MODEL["Modelo LLM<br/>DeepSeek"]
     end
 
     subgraph "⚙️ Infraestrutura"
@@ -158,6 +261,7 @@ graph TB
         ENV[".env<br/>LLM_API_KEY, SECRET_KEY, DEBUG"]
         REQS["requirements.txt<br/>Django, decouple, requests"]
         PACKAGE["package.json<br/>vitest, dompurify, marked"]
+        DEVCONTAINER[".devcontainer<br/>Dockerfile + devcontainer.json"]
     end
 
     subgraph "📚 Documentação"
@@ -167,7 +271,6 @@ graph TB
         PROMPTS_MINI["prompts-mini-projeto/<br/>Sessões Anteriores"]
     end
 
-    %% Conexões Frontend → Backend
     CHAT_HTML -->|"Renderiza"| JS_APP
     JS_APP -->|"Importa"| JS_API
     JS_APP -->|"Importa"| JS_UI
@@ -178,41 +281,41 @@ graph TB
 
     JS_API -->|"POST /send/ (JSON + CSRF)"| VIEWS
 
-    %% Conexões Backend interno
     ROOT_URLS -->|"include"| URLS_CHAT
-    VIEWS -->|"Lê/Escreve"| MODELS
     VIEWS -->|"Chama"| SERVICES
     SERVICES -->|"Lê"| PROMPTS
     SERVICES -->|"Lança"| EXCEPTIONS
     VIEWS -->|"Renderiza"| TEMPLATES
     SETTINGS -->|"Configura"| VIEWS
     SETTINGS -->|"Configura"| SERVICES
-    SETTINGS -->|"Configura"| MODELS
 
-    %% Core (não usado)
     CORE_VIEWS -.->|"⚠️ Não roteado"| CORE_URLS
     CORE_VIEWS -->|"Renderiza"| CORE_TEMPLATE
 
-    %% Banco de Dados
-    MODELS -->|"CRUD"| SQLITE
     VIEWS -->|"Sessões"| SESSION_DB
     DJANGO_MGMT -->|"manage.py migrate"| SQLITE
 
-    %% API Externa
     SERVICES -->|"HTTP POST<br/>Bearer Token"| OPENROUTER
     OPENROUTER -->|"Roteia"| LLM_MODEL
 
-    %% Infraestrutura
     GIT -->|"Push"| CI_CD
     CI_CD -->|"Roda"| TESTS_PY
     CI_CD -->|"Roda"| TESTS_JS
     ENV -->|"Alimenta"| SETTINGS
     REQS -->|"Instala"| DJANGO_MGMT
 
-    %% Documentação
     DOCS -.->|"Referencia"| README
     PROMPTS_DOC -.->|"Alimenta"| PROMPTS
 ```
+
+---
+
+## 🧭 Desenvolvimento
+
+- O backend expõe as rotas principais em `chat/urls.py`.
+- O frontend do chat fica em `chat/static/chat/` com JavaScript modular.
+- O projeto usa sessões em cookies assinados para manter o estado da conversa.
+- Os logs são gravados em `logs/app.log` e `logs/errors.log` com rotação de arquivos.
 
 ---
 

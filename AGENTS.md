@@ -6,32 +6,33 @@ Stack: **Python 3.12+, Django 5.x, OpenRouter API**.
 ## Documentação de referência
 
 - Requisitos e personas: [docs/PRD.md](docs/PRD.md)
-- Estrutura de pastas: [ESTRUTURA_PROJETO.md](ESTRUTURA_PROJETO.md)
-- Fluxo do usuário: [FLUXO_USUARIO.md](FLUXO_USUARIO.md)
-- Diagrama de sequência (PlantUML): [DIAGRAMA_SEQUENCIA.md](DIAGRAMA_SEQUENCIA.md)
-- User Stories (BDD): [USER_STORIES.md](USER_STORIES.md)
+- Estrutura de pastas: [docs/ESTRUTURA_PROJETO.md](docs/ESTRUTURA_PROJETO.md)
+- Fluxo do usuário: [docs/FLUXO_USUARIO.md](docs/FLUXO_USUARIO.md)
+- Diagrama de sequência (PlantUML): [docs/DIAGRAMA_SEQUENCIA.md](docs/DIAGRAMA_SEQUENCIA.md)
+- User Stories (BDD): [docs/USER_STORIES.md](docs/USER_STORIES.md)
 
 ## Arquitetura
 
-```
+```text
 ajuda_tech/        # Configurações Django (settings, urls, wsgi)
 core/              # Landing page e autenticação opcional
 chat/
   services.py      # Cliente OpenRouter — timeout, retentativas, streaming
   prompts.py       # System Prompts de tradução leigo→técnico (NUNCA expor ao usuário)
-  consumers.py     # WebSocket/AJAX consumers
-  models.py        # Conversation, Message
+  views.py         # Endpoints /, /send/, /recommend/
+  models.py        # Modelos desativados; histórico em request.session
 ```
 
 ## Comandos de desenvolvimento
 
 ```bash
 python -m venv venv && source venv/bin/activate
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 cp .env.example .env          # preencher LLM_API_KEY e SECRET_KEY
 python manage.py migrate
 python manage.py runserver     # http://localhost:8000
 pytest                         # rodar testes
+npm test                        # rodar testes do frontend
 ```
 
 ## Variáveis de ambiente obrigatórias
@@ -55,4 +56,6 @@ pytest                         # rodar testes
 
 ## Testes
 
-Usar `pytest` com `pytest-django`. Mocks para chamadas ao OpenRouter via `unittest.mock`. Testes de integração em `chat/tests.py` e `core/tests.py`.
+Usar `pytest` com `pytest-django`. Mocks para chamadas ao OpenRouter via `unittest.mock`. Os testes backend ficam em `chat/tests/`.
+
+Testes frontend usam Vitest em `chat/static/chat/js/*.test.js`.

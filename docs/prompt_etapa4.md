@@ -61,7 +61,7 @@ A estrutura deve seguir o padrão de arquitetura modular do Django, mas contendo
 
 3. Organização de arquivos estáticos e templates utilizando a convenção do Django.
 
-4. Arquivos essenciais de ambiente: .env.example, requirements.txt e Dockerfile para garantir a reprodutibilidade do ambiente de desenvolvimento.
+4. Arquivos essenciais de ambiente: .env, requirements.txt e package.json para garantir a reprodutibilidade do ambiente de desenvolvimento.
 
 Insira breves comentários explicativos ao lado dos diretórios e arquivos críticos criados para a integração com a LLM.
 
